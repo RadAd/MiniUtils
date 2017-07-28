@@ -1,0 +1,6 @@
+version: 1.0.{build}
+build_script:
+- cmd: build
+artifacts:
+- path: '*.exe'
+  name: Binaries
