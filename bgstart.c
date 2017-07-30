@@ -18,8 +18,12 @@
 #define tWinMain WinMain
 #endif
 
-int WINAPI tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPTSTR lpCmdLine, int /*nCmdShow*/)
+int WINAPI tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
+    UNREFERENCED_PARAMETER(hInstance);
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(nCmdShow);
+    
     if (lpCmdLine[0] == TEXT('\0'))
     {
         MessageBox(NULL, TEXT(
