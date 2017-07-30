@@ -10,13 +10,15 @@
 // handles and waits for the process to end so that
 // it can return the exit code. 
 
+#pragma comment(lib, "user32.lib")
+
 #ifdef UNICODE
 #define tWinMain wWinMain
 #else
 #define tWinMain WinMain
 #endif
 
-int WINAPI tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int WINAPI tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPTSTR lpCmdLine, int /*nCmdShow*/)
 {
     if (lpCmdLine[0] == TEXT('\0'))
     {
