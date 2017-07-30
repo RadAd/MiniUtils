@@ -1,7 +1,3 @@
-#define _CONSOLE
-#define _UNICODE
-#define UNICODE
-
 #include <Windows.h>
 #include <stdio.h>
 #include <shlobj.h>
