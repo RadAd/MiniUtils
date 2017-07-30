@@ -62,9 +62,8 @@ set OPTIONS=%OPTIONS% -D _%COMPILE_SUBSYSTEM%
 set LINK_OPTIONS=%LINK_OPTIONS% /SUBSYSTEM:%COMPILE_SUBSYSTEM%
 
 @echo on
-cl %OPTIONS% %1 /link %LINK_OPTIONS%
+cl %OPTIONS% %1 /link %LINK_OPTIONS% && del "%~dpn1.obj"
 @echo off
-del "%~dpn1.obj"
 goto :eof
 
 :upper_case input_var output_var
