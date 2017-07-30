@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <shlobj.h>
 
-#pragma comment(linker, "/SUBSYSTEM:CONSOLE")
 #pragma comment(lib, "user32.lib")
 
 int wmain(int argc, wchar_t** argv)
