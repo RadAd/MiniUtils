@@ -53,7 +53,7 @@ int _tmain(int argc, const TCHAR* argv[])
         if (count == 0)
             break;
 
-        _tprintf(_T("%08Xh:"), offset);
+        _tprintf(_T("%08Xh:"), (unsigned int) offset);
         for (size_t i = 0; i < count; ++i)
         {
             _tprintf(_T(" %02X"), data[i]);
