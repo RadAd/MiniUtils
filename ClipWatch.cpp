@@ -10,25 +10,28 @@ LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         AddClipboardFormatListener(hWnd);
         return TRUE;
-        
+
     case WM_DESTROY:
         RemoveClipboardFormatListener(hWnd);
         return TRUE;
-        
+
     case WM_CLIPBOARDUPDATE:
-       if (OpenClipboard(hWnd))
-       {
-           HGLOBAL hClip = GetClipboardData(CF_UNICODETEXT);
-           if (hClip != NULL)
-           {
-               PCWSTR const buffer = (PCWSTR) GlobalLock(hClip);
-               wprintf(buffer);
-               GlobalUnlock(hClip);
-           }
-           CloseClipboard();
-       }
+        if (OpenClipboard(hWnd))
+        {
+            HGLOBAL hClip = GetClipboardData(CF_UNICODETEXT);
+            if (hClip != NULL)
+            {
+                PCWSTR const buffer = (PCWSTR) GlobalLock(hClip);
+                wprintf(buffer);
+                size_t len = wcslen(buffer);
+                if (len > 0 && buffer[len - 1] != L'\n')
+                    wprintf(L"\n");
+                GlobalUnlock(hClip);
+            }
+            CloseClipboard();
+        }
         return 0;
-        
+
     default:
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
     };
@@ -49,11 +52,11 @@ void main()
     HINSTANCE hInst = GetModuleHandle(NULL);
     ATOM a = Register(hInst);
     /*HWND hWnd =*/ CreateWindow((LPCSTR) a, nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInst, nullptr);
-    
+
     BOOL bRet;
     MSG msg;
     while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0)
-    { 
+    {
         if (bRet == -1)
         {
             // handle the error and possibly exit
