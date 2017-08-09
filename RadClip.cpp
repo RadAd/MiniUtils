@@ -1,6 +1,8 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <shlobj.h>
+#include <io.h>
+#include <fcntl.h>
 
 #pragma comment(lib, "user32.lib")
 
@@ -47,8 +49,26 @@ int wmain(int argc, wchar_t** argv)
         ret = 0;
         wchar_t *pchData = (wchar_t*)GlobalLock(hClipboardData);
 
+#if 1
+        // Printing "\r\n" causes output of "\r\r\n"
+        wchar_t *pchNext;
+        while ((pchNext = wcschr(pchData, L'\r')) != nullptr)
+        {
+            size_t len = pchNext - pchData;
+            wprintf(L"%.*s", (int) len, pchData);
+            if (pchNext[1] != L'\n')
+                wprintf(L"\r");
+            pchData = pchNext + 1;
+        }
         wprintf(pchData);
-        wprintf(L"\n");
+        size_t len = wcslen(pchData);
+        if (len > 0 && pchData[len - 1] != L'\n')
+            wprintf(L"\n");
+#else
+        wchar_t bom = 0xFFFE;
+        fwrite(&bom, sizeof(wchar_t), 1, stdout);
+        fwrite(pchData, sizeof(wchar_t), wcslen(pchData), stdout);
+#endif
 
         GlobalUnlock(hClipboardData);
     }
