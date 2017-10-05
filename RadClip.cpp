@@ -30,19 +30,24 @@ int wmain(int argc, wchar_t** argv)
     {
         fwprintf(stdout, L"RadClip - output the clipboard contents\n");
         fwprintf(stdout, L"\n");
+        fwprintf(stdout, L"RadClip [/U]\n");
+        fwprintf(stdout, L"   /U    Output in unicode\n");
+        fwprintf(stdout, L"\n");
         fwprintf(stdout, L"\tErrorcode 1 if clipboard is empty.\n");
+        fwprintf(stdout, L"\tErrorcode 2 if unknown paramter.\n");
+        fwprintf(stdout, L"\tErrorcode 3 if unknown format.\n");
         return 0;
     }
     
     if (error)
-        return -2;
+        return 2;
         
     _setmode(_fileno(stdout), mode);
 
     if (!OpenClipboard(NULL))
     {
         fwprintf(stderr, L"Error OpenClipboard: %d\n", GetLastError());
-        return -1;
+        return 1;
     }
 
     UINT f[] = { CF_UNICODETEXT, CF_HDROP };
@@ -51,7 +56,7 @@ int wmain(int argc, wchar_t** argv)
     {
         fwprintf(stderr, L"Error Unknown Format\n");
         CloseClipboard();
-        return -3;
+        return 3;
     }
     
     int ret = 0;
