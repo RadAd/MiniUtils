@@ -42,3 +42,6 @@ Copies stdin to stdout prepending each line with a timestamp.
 
 ## [whoami](whoami.c)
 Outputs the name of the current user
+
+## [DragDrop](DragDrop.cpp)
+Simulates drag and dropping a file onto a window
