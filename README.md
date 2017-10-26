@@ -40,6 +40,9 @@ hard and soft links.
 ## [TimeStamp](TimeStamp.cpp)
 Copies stdin to stdout prepending each line with a timestamp.
 
+## [UPnP](UPnP.cpp)
+Output UPnP devices and static port mapping.
+
 ## [whoami](whoami.c)
 Outputs the name of the current user
 

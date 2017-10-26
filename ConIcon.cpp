@@ -16,7 +16,7 @@ int main(int argc, TCHAR* argv[])
         if (sIcon[0] == _T('\0'))
             _tcscpy_s(sIcon, argv[arg]);
         else
-            fprintf(stderr, _T("Unknown argument: %s\n"), argv[arg]);
+            _ftprintf(stderr, _T("Unknown argument: %s\n"), argv[arg]);
     }
     
     if (sIcon[0] != _T('\0'))
@@ -35,14 +35,14 @@ int main(int argc, TCHAR* argv[])
             hIcon = ExtractIcon(hInstance, sIcon, iIndex);
         else
         {
-            fprintf(stderr, _T("Unknown extension: %s\n"), sExt);
+            _ftprintf(stderr, _T("Unknown extension: %s\n"), sExt);
             return 1;
         }
 #endif
         
         if (hIcon == NULL)
         {
-            fprintf(stderr, _T("Unable to load icon.\n"));
+            _ftprintf(stderr, _T("Unable to load icon.\n"));
             return 2;
         }
         

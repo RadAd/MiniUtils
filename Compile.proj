@@ -29,6 +29,7 @@
     <CharacterSet>MBCS</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(TargetName).conf" Condition="exists('$(TargetName).conf')"/> 
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>

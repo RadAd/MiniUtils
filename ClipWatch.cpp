@@ -51,7 +51,7 @@ void main()
 {
     HINSTANCE hInst = GetModuleHandle(NULL);
     ATOM a = Register(hInst);
-    /*HWND hWnd =*/ CreateWindow((LPCSTR) a, nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInst, nullptr);
+    /*HWND hWnd =*/ CreateWindow((LPCTSTR) a, nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInst, nullptr);
 
     BOOL bRet;
     MSG msg;
