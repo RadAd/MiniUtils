@@ -142,6 +142,12 @@ void ListPortMapping()
     if (!SUCCEEDED(piNAT->get_StaticPortMappingCollection(&piPortMappingCollection)))
         throw std::exception("get_StaticPortMappingCollection");
 
+    if (!piPortMappingCollection)
+    {
+        _tprintf(_T("No Port Mapping Collection\n"));
+        return;
+    }
+
     CComPtr<IUnknown> pUnk;
     if (!SUCCEEDED(piPortMappingCollection->get__NewEnum(&pUnk)))
         throw std::exception("IUPnPDevices NewEnum");

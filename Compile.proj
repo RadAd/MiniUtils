@@ -78,7 +78,7 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Targets" />
   <Target Name="Building" BeforeTargets="InitializeBuildStatus">
-    <Message Text="### $(TargetName)" Importance="high" />
+    <Message Text="### $(TargetName) $(Configuration) $(Platform)" Importance="high" />
   </Target>
   <ItemGroup>
     <AllFiles Include="*.cpp;*.c" />
@@ -98,5 +98,8 @@
              Properties="TargetName=%(AllFiles.Filename)"
              RunEachTargetSeparately="true"
              Targets="Rebuild" />
+  </Target>
+  <Target Name="ListAll">
+    <Message Text="### %(AllFiles.Filename)" Importance="high" />
   </Target>
 </Project>  
