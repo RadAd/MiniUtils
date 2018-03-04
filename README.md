@@ -29,6 +29,9 @@ Dump a hex format of a binary file
 ## [RadClip](RadClip.cpp)
 Output the clipboard contents
 
+## [RadRunAs](RadRunAs.cpp)
+Like RunAs except it takes the password from the commandline. Also supports elevation. And Errors are reported in a GUI MessageBox.
+
 ## [RadSpeak](RadSpeak.cpp)
 Uses [ISpVoice](https://msdn.microsoft.com/en-us/library/ee125164(v=vs.85).aspx) to
 convert text to speech.
