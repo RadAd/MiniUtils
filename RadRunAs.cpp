@@ -198,7 +198,7 @@ int CALLBACK wWinMain(
     {
         const LPCWSTR application = szArgs[command];
         const LPCWSTR parameters = (command + 1) < nArgs ? StrStr(lpCmdLine, szArgs[command + 1]) : nullptr;
-        if ((int) ShellExecute(NULL, L"runas", application, parameters, nullptr, SW_SHOWNORMAL) < 32)
+        if ((INT_PTR) ShellExecute(NULL, L"runas", application, parameters, nullptr, SW_SHOWNORMAL) < 32)
         {
             ShowError(L"ShellExecute");
             LocalFree(szArgs);
