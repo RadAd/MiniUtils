@@ -30,6 +30,7 @@ int __cdecl _tmain(int argc, TCHAR *argv[])
 
     if (dwRet == 0)
     {
+        CloseHandle(hFile);
         _ftprintf(stderr, _T("ERROR:\tCould not get final path name (error %d)\n"), GetLastError());
         return EXIT_FAILURE;
     }
