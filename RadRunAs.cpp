@@ -124,6 +124,7 @@ LPWSTR CopyString(const LPCWSTR s)
 
 struct Credentials
 {
+    bool valid;
     const LPCWSTR fulluser;
     const LPCWSTR password;
 };
@@ -139,6 +140,7 @@ const Credentials GetCredentials(const LPCWSTR* szArgs, int nArgs)
         {
             // Note: Both of these CopyString leak memory, but due to short life of process, shouldn't be a problem
             Credentials credentials{
+                true,
                 CopyString(pCred->UserName),
                 CopyString((LPTSTR)pCred->CredentialBlob, pCred->CredentialBlobSize / sizeof(TCHAR))
             };
@@ -146,14 +148,19 @@ const Credentials GetCredentials(const LPCWSTR* szArgs, int nArgs)
             return credentials;
         }
         else
+        {
+            ErrorMessage(L"Cannot find credentials for: %s", cred);
             return Credentials{
+                false,
                 nullptr,
                 nullptr
             };
+        }
     }
     else
     {
         return Credentials{
+            true,
             FindArg(szArgs, nArgs, PARAM_USER),
             FindArg(szArgs, nArgs, PARAM_PASSWORD)
         };
@@ -187,6 +194,8 @@ int CALLBACK wWinMain(
     }
 
     const Credentials cred = GetCredentials(szArgs, nArgs);
+    if (!cred.valid)
+        return 1;
     bool elevated = FindArg(szArgs, nArgs, PARAM_ELEVATED) != nullptr;
     const int command = FindCommandLine(szArgs, nArgs);
 
