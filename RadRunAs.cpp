@@ -142,7 +142,7 @@ const Credentials GetCredentials(const LPCWSTR* szArgs, int nArgs)
             Credentials credentials{
                 true,
                 CopyString(pCred->UserName),
-                CopyString((LPTSTR)pCred->CredentialBlob, pCred->CredentialBlobSize / sizeof(TCHAR))
+                CopyString((LPTSTR) pCred->CredentialBlob, pCred->CredentialBlobSize / sizeof(TCHAR))
             };
             CredFree(pCred);
             return credentials;
@@ -182,7 +182,9 @@ int CALLBACK wWinMain(
         return 5;
     }
 
-    for (int i = 0; i < nArgs; ++i)
+    const int command = FindCommandLine(szArgs, nArgs);
+
+    for (int i = 0; i < command; ++i)
     {
         LPCWSTR lpArg = szArgs[i];
         if (lpArg[0] == L'/'
@@ -197,7 +199,6 @@ int CALLBACK wWinMain(
     if (!cred.valid)
         return 1;
     bool elevated = FindArg(szArgs, nArgs, PARAM_ELEVATED) != nullptr;
-    const int command = FindCommandLine(szArgs, nArgs);
 
     if (cred.fulluser != nullptr && command >= 0)
     {
