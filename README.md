@@ -51,3 +51,6 @@ Outputs the name of the current user
 
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
+
+## [IsElevated](IsElevated.cpp)
+Determine is the process is elevated or not. It inherits this status from its parent.
