@@ -54,3 +54,15 @@ Simulates drag and dropping a file onto a window
 
 ## [IsElevated](IsElevated.cpp)
 Determine is the process is elevated or not. It inherits this status from its parent.
+
+
+# Build Instructions
+
+## Build All
+`msbuild /nologo Compile.proj /t:BuildAll`
+
+## Build Single
+`msbuild /nologo Compile.proj /t:Build /p:TargetName=[Project]`
+
+where `[Project]` is one from the list given by:
+`msbuild /nologo Compile.proj /t:ListAll`
