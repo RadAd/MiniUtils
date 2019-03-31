@@ -84,6 +84,18 @@ bool DisplayClipboard(const UINT format)
     return found;
 }
 
+BOOL OpenClipboardRetry(HWND hWndNewOwner)
+{
+    BOOL r;
+    while (!(r = OpenClipboard(hWndNewOwner)))
+    {
+        if (GetLastError() != ERROR_ACCESS_DENIED)
+            break;
+        Sleep(100);
+    }
+    return r;
+}
+
 LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -97,7 +109,7 @@ LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
 
     case WM_CLIPBOARDUPDATE:
-        if (OpenClipboard(hWnd))
+        if (OpenClipboardRetry(hWnd))
         {
             bool found = false;
             int index = 0;
@@ -111,7 +123,7 @@ LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!found)
             {
                 UINT f[] = { CF_UNICODETEXT, CF_BITMAP, CF_HDROP };
-                int format = GetPriorityClipboardFormat(f, ARRAYSIZE(f));
+                format = GetPriorityClipboardFormat(f, ARRAYSIZE(f));
                 if (format > 0)
                 {
                     //wprintf(L"Priority Format: %#.4x\n", format);
@@ -121,6 +133,8 @@ LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             _putws(L"---");
             CloseClipboard();
         }
+        else
+            printf("Error OpenClipboard: %d\n", GetLastError());
         return !0;
 
     default:
