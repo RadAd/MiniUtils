@@ -79,6 +79,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Targets" />
   <Target Name="Building" BeforeTargets="InitializeBuildStatus">
     <Message Text="### $(TargetName) $(Configuration) $(Platform)" Importance="high" />
+    <Error Condition="!Exists(%(ClCompile.FullPath))" Text="Invalid TargetName"/>
   </Target>
   <ItemGroup>
     <AllFiles Include="*.cpp;*.c" />
@@ -101,5 +102,11 @@
   </Target>
   <Target Name="ListAll">
     <Message Text="### %(AllFiles.Filename)" Importance="high" />
+  </Target>
+  <Target Name="ListConfig">
+    <Message Text="### %(ProjectConfiguration.Identity)  %(Configuration)  %(Platform)" Importance="high" />
+  </Target>
+  <Target Name="CopyLocalFilesOutputGroup">
+    <!-- Ignore warning -->
   </Target>
 </Project>  
