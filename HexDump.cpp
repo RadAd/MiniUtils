@@ -18,6 +18,9 @@ int _tmain(int argc, const TCHAR* argv[])
             _ftprintf(stderr, _T("Too many parameters.\n"));
     }
 
+    if (!_isatty(_fileno(stdin)))
+        filename = _T("-");
+
     FILE* input = nullptr;
     if (filename == nullptr)
     {
