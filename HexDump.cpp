@@ -7,8 +7,14 @@
 
 typedef unsigned char BYTE;
 
+void setcolor(int c)
+{
+    _tprintf(_T("\x1b[%dm"), c);
+}
+
 int _tmain(int argc, const TCHAR* argv[])
 {
+    bool color = true;
     const TCHAR* filename = nullptr;
     for (int i = 1; i < argc; ++i)
     {
@@ -20,6 +26,8 @@ int _tmain(int argc, const TCHAR* argv[])
 
     if (!_isatty(_fileno(stdin)))
         filename = _T("-");
+    if (!_isatty(_fileno(stdout)))
+        color = false;
 
     FILE* input = nullptr;
     if (filename == nullptr)
@@ -56,10 +64,15 @@ int _tmain(int argc, const TCHAR* argv[])
         if (count == 0)
             break;
 
+        if (color) setcolor(33);
         _tprintf(_T("%08Xh:"), (unsigned int) offset);
+        if (color) setcolor(0);
         for (size_t i = 0; i < count; ++i)
         {
+            bool isp = isprint(data[i]) != 0;
+            if (color && isp) setcolor(34);
             _tprintf(_T(" %02X"), data[i]);
+            if (color && isp) setcolor(0);
         }
         for (size_t i = count; i < size; ++i)
         {
@@ -68,7 +81,10 @@ int _tmain(int argc, const TCHAR* argv[])
         _tprintf(_T(" "));
         for (size_t i = 0; i < count; ++i)
         {
-            _tprintf(_T("%c"), isprint(data[i]) ? data[i] : '.');
+            bool isp = isprint(data[i]) != 0;
+            if (color && isp) setcolor(34);
+            _tprintf(_T("%c"), isp ? data[i] : '.');
+            if (color && isp) setcolor(0);
         }
         _tprintf(_T("\n"));
 
