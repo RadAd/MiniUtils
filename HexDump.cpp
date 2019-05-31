@@ -7,9 +7,13 @@
 
 typedef unsigned char BYTE;
 
-void setcolor(int c)
+void setcolor(int* curcolor, int c)
 {
-    _tprintf(_T("\x1b[%dm"), c);
+    if (*curcolor != c)
+    {
+        _tprintf(_T("\x1b[%dm"), c);
+        *curcolor = c;
+    }
 }
 
 int _tmain(int argc, const TCHAR* argv[])
@@ -56,6 +60,7 @@ int _tmain(int argc, const TCHAR* argv[])
     }
 
     const size_t size = 16;
+    int curcolor = 0;
     BYTE* data = new BYTE[size];
     size_t offset = 0;
     while (true)
@@ -64,15 +69,13 @@ int _tmain(int argc, const TCHAR* argv[])
         if (count == 0)
             break;
 
-        if (color) setcolor(33);
+        if (color) setcolor(&curcolor, 33);
         _tprintf(_T("%08Xh:"), (unsigned int) offset);
-        if (color) setcolor(0);
         for (size_t i = 0; i < count; ++i)
         {
             bool isp = isprint(data[i]) != 0;
-            if (color && isp) setcolor(34);
+            if (color) setcolor(&curcolor, isp ? 34 : 0);
             _tprintf(_T(" %02X"), data[i]);
-            if (color && isp) setcolor(0);
         }
         for (size_t i = count; i < size; ++i)
         {
@@ -82,14 +85,14 @@ int _tmain(int argc, const TCHAR* argv[])
         for (size_t i = 0; i < count; ++i)
         {
             bool isp = isprint(data[i]) != 0;
-            if (color && isp) setcolor(34);
+            if (color) setcolor(&curcolor, isp ? 34 : 0);
             _tprintf(_T("%c"), isp ? data[i] : '.');
-            if (color && isp) setcolor(0);
         }
         _tprintf(_T("\n"));
 
         offset += count;
     }
+    if (color) setcolor(&curcolor, 0);
 
     delete[] data;
 
