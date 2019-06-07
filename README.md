@@ -26,6 +26,15 @@ Set the icon of the console window
 ## [HexDump](HexDump.cpp)
 Dump a hex format of a binary file
 
+## [DragDrop](DragDrop.cpp)
+Simulates drag and dropping a file onto a window
+
+## [IsElevated](IsElevated.cpp)
+Determine is the process is elevated or not. It inherits this status from its parent.
+
+## [IsInteractive](IsInteractive.cpp)
+Determine is the process is in an interactive mode. ie Are the stdin and stdout of type char.
+
 ## [RadClip](RadClip.cpp)
 Output the clipboard contents
 
@@ -48,12 +57,6 @@ Output UPnP devices and static port mapping.
 
 ## [whoami](whoami.c)
 Outputs the name of the current user
-
-## [DragDrop](DragDrop.cpp)
-Simulates drag and dropping a file onto a window
-
-## [IsElevated](IsElevated.cpp)
-Determine is the process is elevated or not. It inherits this status from its parent.
 
 
 # Build Instructions
