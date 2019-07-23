@@ -42,7 +42,7 @@ int _tmain(int argc, TCHAR *argv[])
     }
 
     PROCESS_BASIC_INFORMATION pbi;
-    if (!NT_SUCCESS(NtQueryInformationProcess(hProcess.get(), ProcessBasicInformation, &pbi, sizeof(pbi), NULL))
+    if (!NT_SUCCESS(NtQueryInformationProcess(hProcess.get(), ProcessBasicInformation, &pbi, sizeof(pbi), NULL)))
     {
         _fputts(_T("Could not read process basic information!\n"), stderr);
         return GetLastError();
