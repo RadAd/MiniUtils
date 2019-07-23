@@ -29,11 +29,23 @@ Dump a hex format of a binary file
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
+## [GetBinaryType](GetBinaryType.cpp)
+Show the binary type as retrieved from [GetBinaryType](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
+
+## [GetCmdLine](GetCmdLine.cpp)
+Get the command line of a process.
+
 ## [IsElevated](IsElevated.cpp)
 Determine is the process is elevated or not. It inherits this status from its parent.
 
 ## [IsInteractive](IsInteractive.cpp)
 Determine is the process is in an interactive mode. ie Are the stdin and stdout of type char.
+
+## [KeyScanLog](KeyScanLog.cpp)
+Output log of keys pressed.
+
+## [ptime](ptime.cpp)
+Display process times as retrieved from [GetProcessTimes](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)
 
 ## [RadClip](RadClip.cpp)
 Output the clipboard contents
