@@ -8,9 +8,7 @@
 // don't wish to see. One difference with this version
 // is that it passes on the standard input and output
 // handles and waits for the process to end so that
-// it can return the exit code. 
-
-#pragma comment(lib, "user32.lib")
+// it can return the exit code.
 
 #ifdef UNICODE
 #define tWinMain wWinMain
@@ -23,12 +21,13 @@ int WINAPI tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLi
     UNREFERENCED_PARAMETER(hInstance);
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(nCmdShow);
-    
+
     if (lpCmdLine[0] == TEXT('\0'))
     {
-        MessageBox(NULL, TEXT(
-            "ERROR: No arguments found.\nThis program will launch executables and batch "
-            "scripts in the background.\n\nUsage: bgstart [command] [argument 1] [argument 2] ...\n"),
+        MessageBox(NULL,
+            TEXT("ERROR: No arguments found.\n")
+            TEXT("This program will launch executables and batch scripts in the background.\n")
+            TEXT("\nUsage: bgstart [command] <argument 1> <argument 2> ...\n"),
             TEXT("BGStart"), MB_ICONERROR);
         return 1;
     }
