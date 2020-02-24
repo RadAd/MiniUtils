@@ -87,7 +87,7 @@ bool DisplayClipboard(const UINT format)
 BOOL OpenClipboardRetry(HWND hWndNewOwner)
 {
     BOOL r;
-    while (!(r = OpenClipboard(hWndNewOwner)))
+    while ((r = OpenClipboard(hWndNewOwner)) == FALSE)
     {
         if (GetLastError() != ERROR_ACCESS_DENIED)
             break;
