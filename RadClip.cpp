@@ -4,7 +4,8 @@
 #include <io.h>
 #include <fcntl.h>
 
-#pragma comment(lib, "user32.lib")
+// TODO: Save to file
+// Save HBITMAP to file
 
 int wmain(int argc, wchar_t const* const* const argv)
 {
