@@ -6,42 +6,48 @@
 
 #pragma comment(lib, "user32.lib")
 
-int wmain(int argc, wchar_t** argv)
+int wmain(int argc, const wchar_t const* const* argv)
 {
     int mode = _O_U8TEXT;
-    
+    int format = 0;
+
     bool error = false;
     bool showUsage = false;
 
     for (int i = 1; i < argc; ++i)
     {
-        if (wcscmp(argv[i], L"/?") == 0)
+        const wchar_t const* arg = argv[i];
+        if (wcscmp(arg, L"/?") == 0)
             showUsage = true;
-        else if (wcscmp(argv[i], L"/U") == 0)
+        else if (wcscmp(arg, L"/U") == 0)
             mode = _O_U16TEXT;
+        else if (wcsncmp(arg, L"/F:", 3) == 0)
+            format = _wtoi(arg + 3);
         else
         {
-            fwprintf(stderr, L"Unknown argument: %s\n", argv[i]);
+            fwprintf(stderr, L"Unknown argument: %s\n", arg);
             error = true;
         }
     }
-    
+
     if (showUsage)
     {
         fwprintf(stdout, L"RadClip - output the clipboard contents\n");
         fwprintf(stdout, L"\n");
-        fwprintf(stdout, L"RadClip [/U]\n");
+        fwprintf(stdout, L"RadClip [/U] [/F:n]\n");
         fwprintf(stdout, L"   /U    Output in unicode\n");
+        fwprintf(stdout, L"   /F    Clipbaord format\n");
+        fwprintf(stdout, L"         where n is 1 for text, 2 for bitmap, 13 for unicode\n");
         fwprintf(stdout, L"\n");
         fwprintf(stdout, L"\tErrorcode 1 if clipboard is empty.\n");
-        fwprintf(stdout, L"\tErrorcode 2 if unknown paramter.\n");
+        fwprintf(stdout, L"\tErrorcode 2 if unknown parameter.\n");
         fwprintf(stdout, L"\tErrorcode 3 if unknown format.\n");
         return 0;
     }
-    
+
     if (error)
         return 2;
-        
+
     _setmode(_fileno(stdout), mode);
 
     if (!OpenClipboard(NULL))
@@ -50,15 +56,18 @@ int wmain(int argc, wchar_t** argv)
         return 1;
     }
 
-    UINT f[] = { CF_UNICODETEXT, CF_HDROP };
-    int format = GetPriorityClipboardFormat(f, ARRAYSIZE(f));
-    if (format < 0)
+    if (format == 0)
     {
-        fwprintf(stderr, L"Error Unknown Format\n");
-        CloseClipboard();
-        return 3;
+        UINT f[] = { CF_UNICODETEXT, CF_HDROP, CF_BITMAP };
+        format = GetPriorityClipboardFormat(f, ARRAYSIZE(f));
+        if (format < 0)
+        {
+            fwprintf(stderr, L"Error Unknown Format\n");
+            CloseClipboard();
+            return 3;
+        }
     }
-    
+
     int ret = 0;
     HANDLE hClipboardData = GetClipboardData(format);
     if (hClipboardData != NULL)
@@ -122,11 +131,23 @@ int wmain(int argc, wchar_t** argv)
                 GlobalUnlock(hClipboardData);
             }
             break;
+
+        case CF_BITMAP:
+            {
+                HBITMAP hBmp = (HBITMAP) hClipboardData;
+
+                BITMAP bm = {};
+                GetObject(hBmp, sizeof(BITMAP), &bm);
+
+                fwprintf(stdout, L"Bitmap: %d x %d  %d bpp\n", bm.bmWidth, bm.bmHeight, bm.bmBitsPixel);
+            }
+            break;
         }
 
     }
     else
     {
+        fwprintf(stderr, L"No data\n");
         DWORD Error = GetLastError();
         if (Error != 0)
             fwprintf(stderr, L"Error: %d\n", GetLastError());
@@ -134,6 +155,6 @@ int wmain(int argc, wchar_t** argv)
     }
 
     CloseClipboard();
-    
+
     return ret;
 }
