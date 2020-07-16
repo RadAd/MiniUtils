@@ -106,6 +106,6 @@
   <Target Name="ListConfig">
     <Message Text="### %(ProjectConfiguration.Identity)  %(Configuration)  %(Platform)" Importance="high" />
   </Target>
-  <!-- Workaraound for an issue where IncrementalClean deletes the output-->
+  <!-- Workaraound for an issue where IncrementalClean deletes the output -->
   <Target Name="IncrementalClean" />
 </Project>  
