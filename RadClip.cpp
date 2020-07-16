@@ -6,7 +6,7 @@
 
 #pragma comment(lib, "user32.lib")
 
-int wmain(int argc, const wchar_t const* const* argv)
+int wmain(int argc, wchar_t const* const* const argv)
 {
     int mode = _O_U8TEXT;
     int format = 0;
@@ -16,7 +16,7 @@ int wmain(int argc, const wchar_t const* const* argv)
 
     for (int i = 1; i < argc; ++i)
     {
-        const wchar_t const* arg = argv[i];
+        wchar_t const* const arg = argv[i];
         if (wcscmp(arg, L"/?") == 0)
             showUsage = true;
         else if (wcscmp(arg, L"/U") == 0)
