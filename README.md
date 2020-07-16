@@ -32,6 +32,9 @@ Simulates drag and dropping a file onto a window
 ## [GetBinaryType](GetBinaryType.cpp)
 Show the binary type as retrieved from [GetBinaryType](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
 
+## [GetCh](GetCh.cpp)
+Get the next keyboard character
+
 ## [GetCmdLine](GetCmdLine.cpp)
 Get the command line of a process.
 
