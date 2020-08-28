@@ -44,7 +44,7 @@ BOOL argcleanup()
 const TCHAR* argapp()
 {
     const TCHAR* app = _tcsrchr(g_argv[0], _T('\\'));
-    return app == NULL ? NULL : app + 1;
+    return app == NULL ? g_argv[0] : app + 1;
 }
 
 BOOL argswitch(const TCHAR* argf)
