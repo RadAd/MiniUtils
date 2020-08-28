@@ -13,8 +13,8 @@ is that it passes on the standard input and output
 handles and waits for the process to end so that
 it can return the exit code. 
 
-## [cat](cat.cpp)
-Read and output a file to stdout.
+## [cattee](cattee.cpp)
+Combination of cat and tee. Read from a file or stdin and output to a file or stdout.
 
 ## [catwin](catwin.cpp)
 Read and output a file to stdout using windows file functions. Works with named pipes also.

@@ -41,6 +41,12 @@ BOOL argcleanup()
     return ret;
 }
 
+const TCHAR* argapp()
+{
+    const TCHAR* app = _tcsrchr(g_argv[0], _T('\\'));
+    return app == NULL ? NULL : app + 1;
+}
+
 BOOL argswitch(const TCHAR* argf)
 {
     for (int argi = 1; argi < g_argc; ++argi)
