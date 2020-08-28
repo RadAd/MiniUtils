@@ -106,7 +106,6 @@
   <Target Name="ListConfig">
     <Message Text="### %(ProjectConfiguration.Identity)  %(Configuration)  %(Platform)" Importance="high" />
   </Target>
-  <Target Name="CopyLocalFilesOutputGroup">
-    <!-- Ignore warning -->
-  </Target>
+  <!-- Workaraound for an issue where IncrementalClean deletes the output -->
+  <Target Name="IncrementalClean" />
 </Project>  
