@@ -84,6 +84,7 @@
   <ItemGroup>
     <AllFiles Include="*.cpp;*.c" />
   </ItemGroup>
+  <Target Name="IncrementalClean" />
   <Target Name="BuildAll">
 	<MSBuild Projects="$(MSBuildProjectFullPath)"
              Properties="TargetName=%(AllFiles.Filename)"

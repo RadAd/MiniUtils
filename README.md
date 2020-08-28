@@ -13,6 +13,12 @@ is that it passes on the standard input and output
 handles and waits for the process to end so that
 it can return the exit code. 
 
+## [cat](cat.cpp)
+Read and output a file to stdout.
+
+## [catwin](catwin.cpp)
+Read and output a file to stdout using windows file functions. Works with named pipes also.
+
 ## [ClipWatch](ClipWatch.cpp)
 Monitors the clipboard and outputs the text it contains
 
@@ -47,11 +53,14 @@ Determine is the process is in an interactive mode. ie Are the stdin and stdout 
 ## [KeyScanLog](KeyScanLog.cpp)
 Output log of keys pressed.
 
+## [Piper](Piper.cpp)
+Create a named pipe and wait for a connection.
+
 ## [ptime](ptime.cpp)
 Display process times as retrieved from [GetProcessTimes](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)
 
 ## [RadClip](RadClip.cpp)
-Output the clipboard contents
+Output the clipboard contents.
 
 ## [RadRunAs](RadRunAs.cpp)
 Like RunAs except it takes the password from the commandline. Also supports elevation. And Errors are reported in a GUI MessageBox.
