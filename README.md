@@ -73,6 +73,9 @@ convert text to speech.
 Output the real path of a file. Useful to resolve
 hard and soft links.
 
+## [SendMessage](SendMessage.cpp)
+Use the [SendMessage](https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
+
 ## [TimeStamp](TimeStamp.cpp)
 Copies stdin to stdout prepending each line with a timestamp.
 
