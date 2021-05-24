@@ -82,6 +82,9 @@ Output UPnP devices and static port mapping.
 ## [whoami](whoami.c)
 Outputs the name of the current user
 
+## [WndList](WndList.c)
+Outputs a list of windows
+
 
 # Build Instructions
 

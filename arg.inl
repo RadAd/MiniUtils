@@ -1,3 +1,9 @@
+#ifndef BOOL
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
+#endif
+
 BOOL* g_argb = NULL;
 int g_argc = 0;
 const TCHAR* const* g_argv = NULL;
@@ -59,6 +65,21 @@ BOOL argswitch(const TCHAR* argf)
         }
     }
     return FALSE;
+}
+
+const TCHAR* argvalue(const TCHAR* argf)
+{
+    const size_t len = _tcslen(argf);
+    for (int argi = 1; argi < g_argc; ++argi)
+    {
+        const TCHAR* arg = g_argv[argi];
+        if (_tcsnicmp(arg, argf, len) == 0 && arg[len] == _T('='))
+        {
+            g_argb[argi] = TRUE;
+            return arg + len + 1;
+        }
+    }
+    return NULL;
 }
 
 const TCHAR* argnum(int i)
