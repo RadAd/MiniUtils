@@ -35,6 +35,9 @@ Dump a hex format of a binary file
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
+## [FindWindow](FindWindow.cpp)
+Search for a window by title or class.
+
 ## [GetBinaryType](GetBinaryType.cpp)
 Show the binary type as retrieved from [GetBinaryType](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
 
