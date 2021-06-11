@@ -96,8 +96,8 @@ int _tmain(int argc, const TCHAR* const argv[])
         _ftprintf(stderr, _T("\n"));
         _ftprintf(stderr, _T("Read and output a file to stdout.\n"));
         _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("  input           The file to read ('-' for stdin)\n"));
-        _ftprintf(stderr, _T("  output          The file to write ('-' for stdout)\n"));
+        _ftprintf(stderr, _T("  input           The file to read ('-' for stdin, 'CONIN$' for console)\n"));
+        _ftprintf(stderr, _T("  output          The file to write ('-' for stdout, 'CONOUT$' for console)\n"));
         _ftprintf(stderr, _T("  /U              Use unicode mode\n"));
         return EXIT_FAILURE;
     }

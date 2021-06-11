@@ -5,20 +5,13 @@
 #include <cstdio>
 
 #include <string>
+#include <vector>
 #include <inttypes.h>
 
 struct PrintWindowOptions
 {
     std::wstring columns;
     TCHAR sep;
-};
-
-struct ListWindowsOptions
-{
-    HWND   hParentWnd;
-    PrintWindowOptions print;
-    BOOL bRecurse;
-    std::wstring prefix;
 };
 
 void PrintWindowHeadings(const PrintWindowOptions& print)
@@ -123,45 +116,56 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
     _tprintf(_T("\n"));
 }
 
-BOOL CALLBACK ListWindowsEnumWindowsProc(
+BOOL CALLBACK GetWindowsEnumWindowsProc(
   _In_ HWND   hWnd,
   _In_ LPARAM lParam
 )
 {
-    const ListWindowsOptions& options = *((ListWindowsOptions*) lParam);
-    LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-    
-    if (IsWindowVisible(hWnd) && GetParent(hWnd) == options.hParentWnd && (ExStyle & WS_EX_TOOLWINDOW) == 0)
-    {
-        if (options.bRecurse)
-            _tprintf(options.prefix.c_str());
-        PrintWindow(hWnd, options.print);
-    }
-    if (options.bRecurse)
-    {
-        ListWindowsOptions optionsChild = options;
-        optionsChild.hParentWnd = hWnd;
-        optionsChild.prefix = _T("| ") + optionsChild.prefix;
-        EnumChildWindows(hWnd, ListWindowsEnumWindowsProc, (LPARAM) &optionsChild);
-    }
+    std::vector<HWND>* pVec = reinterpret_cast<std::vector<HWND>*>(lParam);
+    pVec->push_back(hWnd);
     return TRUE;
 }
 
-void ListWindows(const PrintWindowOptions& print, HWND hParent, BOOL bRecurse)
+void Filter(std::vector<HWND>& windows, HWND hParentWnd)
 {
-    ListWindowsOptions options = {};
-    options.print = print;
-    options.bRecurse = bRecurse;
-    if (options.bRecurse)
-        //options.prefix = _T("\u2520\u2500");
-        options.prefix = _T("|-");  // TODO Improve Tree output - need to know if its the last entry
+    windows.erase(std::remove_if(windows.begin(), windows.end(), [hParentWnd](HWND hWnd) {
+        const LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+        return !(IsWindowVisible(hWnd) && GetParent(hWnd) == hParentWnd && (ExStyle & WS_EX_TOOLWINDOW) == 0);
+    }), windows.end());
+}
 
+void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const std::wstring& prefix, const PrintWindowOptions& print)
+{
+    for (HWND hWnd : windows)
+    {
+        if (bRecurse)
+        {
+            _tprintf(prefix.c_str());
+            _tprintf(hWnd == windows.back() ? _T("\xC0\xC4\xC4") : _T("\xC3\xC4\xC4"));
+        }
+        PrintWindow(hWnd, print);
+
+        if (bRecurse)
+        {
+            std::vector<HWND> childwindows;
+            EnumChildWindows(hWnd, GetWindowsEnumWindowsProc, (LPARAM) &childwindows);
+            Filter(childwindows, hWnd);
+            PrintWindows(childwindows, bRecurse, prefix + (hWnd == windows.back() ? _T("  "): _T("\xB3 ")), print);
+        }
+    }
+}
+
+void ListWindows(const PrintWindowOptions& print, const HWND hParentWnd, const BOOL bRecurse)
+{
     PrintWindowHeadings(print);
     
-    if (hParent == NULL)
-        EnumWindows(ListWindowsEnumWindowsProc, (LPARAM) &options);
+    std::vector<HWND> windows;
+    if (hParentWnd == NULL)
+        EnumWindows(GetWindowsEnumWindowsProc, (LPARAM) &windows);
     else
-        EnumChildWindows(hParent, ListWindowsEnumWindowsProc, (LPARAM) &options);
+        EnumChildWindows(hParentWnd, GetWindowsEnumWindowsProc, (LPARAM) &windows);
+    Filter(windows, hParentWnd);
+    PrintWindows(windows, bRecurse, _T(""), print);
 }
 
 HWND GetWindow(const TCHAR* s)
