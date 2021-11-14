@@ -205,9 +205,9 @@ int _tmain(int argc, const TCHAR* const argv[])
         _tprintf(_T("print [window]      - show a window\n"));
 
         _tprintf(_T("\nwhere window/parent can be:\n"));
-        _tprintf(_T("cursor     - window under cursor\n"));
-        _tprintf(_T("console    - console window\n"));
-        _tprintf(_T("foreground - foreground window\n"));
+        _tprintf(_T("\t{cursor}     - window under cursor\n"));
+        _tprintf(_T("\t{console}    - console window\n"));
+        _tprintf(_T("\t{foreground} - foreground window\n"));
     }
     else if (_tcsicmp(cmd, _T("list")) == 0)
         ListWindows(print, GetWindow(wnd), FALSE);
