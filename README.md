@@ -72,6 +72,9 @@ Like RunAs except it takes the password from the commandline. Also supports elev
 Uses [ISpVoice](https://msdn.microsoft.com/en-us/library/ee125164(v=vs.85).aspx) to
 convert text to speech.
 
+## [RadToast](RadToast.cpp)
+Create a windows notification.
+
 ## [RealPath](RealPath.cpp)
 Output the real path of a file. Useful to resolve
 hard and soft links.
