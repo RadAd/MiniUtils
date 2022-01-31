@@ -1,14 +1,14 @@
 #include <windows.h>
 #include <shlwapi.h>
-#include <stdio.h>
+#include <cstdio>
 #include <tchar.h>
 
 #include "arg.inl"
 
 struct FindWindowPlusData
 {
-    LPCSTR lpClassName;
-    LPCSTR lpWindowName;
+    LPCTSTR lpClassName;
+    LPCTSTR lpWindowName;
     HWND hWnd;
 };
 
@@ -43,7 +43,7 @@ BOOL CALLBACK FindWindowPlusEnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
     return TRUE;
 }
 
-HWND FindWindowPlus(LPCSTR lpClassName, LPCSTR lpWindowName)
+HWND FindWindowPlus(LPCTSTR lpClassName, LPCTSTR lpWindowName)
 {
     FindWindowPlusData data = { lpClassName, lpWindowName };
     EnumWindows(FindWindowPlusEnumWindowsProc, (LPARAM) &data);
@@ -53,8 +53,8 @@ HWND FindWindowPlus(LPCSTR lpClassName, LPCSTR lpWindowName)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    LPCSTR lpClassName = argvalue(_T("/class"));
-    LPCSTR lpWindowName = argvalue(_T("/title"));
+    LPCTSTR lpClassName = argvalue(_T("/class"));
+    LPCTSTR lpWindowName = argvalue(_T("/title"));
 	if (!argcleanup())
         return EXIT_FAILURE;
         
