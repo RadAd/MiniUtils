@@ -3,57 +3,50 @@
 #include <shlobj.h>
 #include <io.h>
 #include <fcntl.h>
+#include <tchar.h>
+
+#include "arg.inl"
 
 // TODO: Save to file
 // Save HBITMAP to file
 
-int wmain(int argc, wchar_t const* const* const argv)
+#define COLOR(n, s) "\x1B[" #n "m" s "\x1B[0m"
+#define COMMAND(s) COLOR(37, s)
+#define OPTION(s) COLOR(33, s)
+#define VALUE(s) COLOR(36, s)
+
+int _tmain(int argc, TCHAR const* const* const argv)
 {
-    int mode = _O_U8TEXT;
-    int format = 0;
+    arginit(argc, argv);
+    
+    const int mode = argswitch(_T("/U")) ? _O_U16TEXT : _O_U8TEXT;
+    int format = _ttoi(argvalue(_T("/F"), _T("0")));
 
-    bool error = false;
-    bool showUsage = false;
-
-    for (int i = 1; i < argc; ++i)
-    {
-        wchar_t const* const arg = argv[i];
-        if (wcscmp(arg, L"/?") == 0)
-            showUsage = true;
-        else if (wcscmp(arg, L"/U") == 0)
-            mode = _O_U16TEXT;
-        else if (wcsncmp(arg, L"/F:", 3) == 0)
-            format = _wtoi(arg + 3);
-        else
-        {
-            fwprintf(stderr, L"Unknown argument: %s\n", arg);
-            error = true;
-        }
-    }
+    const bool showUsage = argswitch(_T("/?"));
 
     if (showUsage)
     {
-        fwprintf(stdout, L"RadClip - output the clipboard contents\n");
-        fwprintf(stdout, L"\n");
-        fwprintf(stdout, L"RadClip [/U] [/F:n]\n");
-        fwprintf(stdout, L"   /U    Output in unicode\n");
-        fwprintf(stdout, L"   /F    Clipbaord format\n");
-        fwprintf(stdout, L"         where n is 1 for text, 2 for bitmap, 13 for unicode\n");
-        fwprintf(stdout, L"\n");
-        fwprintf(stdout, L"\tErrorcode 1 if clipboard is empty.\n");
-        fwprintf(stdout, L"\tErrorcode 2 if unknown parameter.\n");
-        fwprintf(stdout, L"\tErrorcode 3 if unknown format.\n");
+        _ftprintf(stdout, _T(COMMAND("%s") " - Output clipboard contents to stdout\n"), argapp());
+        _ftprintf(stdout, _T("\n"));
+        _ftprintf(stdout, _T(COMMAND("%s") " [/" OPTION("U") "] [/" OPTION("F") "=" VALUE("n") "]\n"), argapp());
+        _ftprintf(stdout, _T("   /" OPTION("U") "    Output in unicode\n"));
+        _ftprintf(stdout, _T("   /" OPTION("F") "    Clipboard format\n"));
+        _ftprintf(stdout, _T("         where " VALUE("n") " is " VALUE("1") " for text, " VALUE("2") " for bitmap, " VALUE("13") " for unicode\n"));
+        _ftprintf(stdout, _T("\n"));
+        _ftprintf(stdout, _T("\tErrorcode " VALUE("1") " if clipboard is empty.\n"));
+        _ftprintf(stdout, _T("\tErrorcode " VALUE("2") " if unknown parameter.\n"));
+        _ftprintf(stdout, _T("\tErrorcode " VALUE("3") " if unknown format.\n"));
         return 0;
     }
 
-    if (error)
+    if (!argcleanup())
         return 2;
 
     _setmode(_fileno(stdout), mode);
 
     if (!OpenClipboard(NULL))
     {
-        fwprintf(stderr, L"Error OpenClipboard: %d\n", GetLastError());
+        _ftprintf(stderr, _T("Error OpenClipboard: %d\n"), GetLastError());
         return 1;
     }
 
@@ -63,7 +56,7 @@ int wmain(int argc, wchar_t const* const* const argv)
         format = GetPriorityClipboardFormat(f, ARRAYSIZE(f));
         if (format < 0)
         {
-            fwprintf(stderr, L"Error Unknown Format\n");
+            _ftprintf(stderr, _T("Error Unknown Format\n"));
             CloseClipboard();
             return 3;
         }
@@ -140,7 +133,7 @@ int wmain(int argc, wchar_t const* const* const argv)
                 BITMAP bm = {};
                 GetObject(hBmp, sizeof(BITMAP), &bm);
 
-                fwprintf(stdout, L"Bitmap: %d x %d  %d bpp\n", bm.bmWidth, bm.bmHeight, bm.bmBitsPixel);
+                _ftprintf(stdout, _T("Bitmap: %d x %d  %d bpp\n"), bm.bmWidth, bm.bmHeight, bm.bmBitsPixel);
             }
             break;
         }
@@ -148,11 +141,11 @@ int wmain(int argc, wchar_t const* const* const argv)
     }
     else
     {
-        fwprintf(stderr, L"No data\n");
-        DWORD Error = GetLastError();
+        _ftprintf(stderr, _T("No data\n"));
+        const DWORD Error = GetLastError();
         if (Error != 0)
-            fwprintf(stderr, L"Error: %d\n", GetLastError());
-        ret = error;
+            _ftprintf(stderr, _T("Error: %d\n"), GetLastError());
+        ret = 3;
     }
 
     CloseClipboard();
