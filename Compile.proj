@@ -27,13 +27,19 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MBCS</CharacterSet>
+    <OutDir>$(SolutionDir)Bin\$(Platform)$(Configuration)\</OutDir>
+    <IntDir>Int\$(Platform)$(Configuration)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(TargetName).conf" Condition="exists('$(TargetName).conf')"/> 
   <ItemDefinitionGroup>
     <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <WarningLevel>Level4</WarningLevel>
     </ClCompile>
+    <ResourceCompile>
+      <AdditionalOptions>/D_TARGET=$(TargetName) /D_DATE_VERSION_COMMA=$([System.DateTime]::Now.ToString(`yyyy,MM,dd`)) /D_DATE_VERSION_DOTS=$([System.DateTime]::Now.ToString(`yyyy.MM.dd`)) %(AdditionalOptions)</AdditionalOptions>
+    </ResourceCompile>
     <Link>
       <AdditionalDependencies></AdditionalDependencies>
       <SubSystem>Console</SubSystem>
@@ -66,9 +72,18 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="!exists('$(TargetName).rc')">
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)$(TargetName).res</ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(TargetName).cpp" Condition="exists('$(TargetName).cpp')"/>
     <ClCompile Include="$(TargetName).c" Condition="exists('$(TargetName).c')"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(TargetName).rc" Condition="exists('$(TargetName).rc')"/>
+    <ResourceCompile Include="Version.rc" Condition="!exists('$(TargetName).rc')"/>
   </ItemGroup>
   <Import Project="$(TargetName).props" Condition="exists('$(TargetName).props')"/>
   <ItemDefinitionGroup Condition="'$(CharacterSet)'=='Unicode'">

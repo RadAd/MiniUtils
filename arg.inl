@@ -67,8 +67,14 @@ BOOL argswitch(const TCHAR* argf)
     return FALSE;
 }
 
+#ifdef __cplusplus
+const TCHAR* argvalue(const TCHAR* argf, const TCHAR* def = NULL)
+{
+#else
 const TCHAR* argvalue(const TCHAR* argf)
 {
+    const TCHAR* def = NULL;
+#endif
     const size_t len = _tcslen(argf);
     for (int argi = 1; argi < g_argc; ++argi)
     {
@@ -79,11 +85,17 @@ const TCHAR* argvalue(const TCHAR* argf)
             return arg + len + 1;
         }
     }
-    return NULL;
+    return def;
 }
 
+#ifdef __cplusplus
+const TCHAR* argnum(int i, const TCHAR* def = NULL)
+{
+#else
 const TCHAR* argnum(int i)
 {
+    const TCHAR* def = NULL;
+#endif
     for (int argi = 1; argi < g_argc && i >= 0; ++argi)
     {
         const TCHAR* arg = g_argv[argi];
@@ -99,5 +111,5 @@ const TCHAR* argnum(int i)
     }
     if (i < 0)
         _ftprintf(stderr, _T("Error argument number\n"));
-    return NULL;
+    return def;
 }
