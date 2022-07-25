@@ -112,7 +112,7 @@ public:
     }
 };
 
-int WINAPI _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nShowCmd)
+int WINAPI _tWinMain(_In_ HINSTANCE /*hInstance*/, _In_opt_ HINSTANCE /*hPrevInstance*/, _In_ LPTSTR /*lpCmdLine*/, _In_ int /*nShowCmd*/)
 {
     try
     {
@@ -162,7 +162,7 @@ int WINAPI _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
         return 0;
     }
-    catch (const std::exception& e)
+    catch (const std::exception& /*e*/)
     {
         MessageBoxW(NULL, L"Exception", L"Rad Toast", MB_OK | MB_ICONERROR);
         return 1;
