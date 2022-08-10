@@ -82,6 +82,9 @@ hard and soft links.
 ## [SendMessage](SendMessage.cpp)
 Use the [SendMessage](https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
 
+## [Shortcut](Shortcut.cpp)
+Edit shortcut properties from the command line.
+
 ## [TimeStamp](TimeStamp.cpp)
 Copies stdin to stdout prepending each line with a timestamp.
 
