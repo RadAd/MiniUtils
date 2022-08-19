@@ -50,7 +50,7 @@ int _tmain(/*int argc, const TCHAR* const argv[]*/)
         
         TCHAR TotalStr[15];
         TCHAR FreeStr[15];
-        _tprintf(_T("%3s\t%10s\t%10s\t%10s\t%10s\t%4.2lf%% Free\n"),
+        _tprintf(_T("%-3s %-10s %-10s %10s %10s %6.2lf%% Free\n"),
             d,
             VolumeLabel,
             GetDriveTypeStr(GetDriveType(d)),
