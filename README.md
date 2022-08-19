@@ -35,6 +35,9 @@ Dump a hex format of a binary file
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
+## [Drives](Drives.cpp)
+List local drives
+
 ## [FindWindow](FindWindow.cpp)
 Search for a window by title or class.
 
