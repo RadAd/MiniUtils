@@ -35,19 +35,18 @@ static const TCHAR *HumanSize(ULONGLONG bytes, TCHAR* output, size_t sizeOfOutpu
 	return output;
 }
 
-//GetLogicalDriveString
 int _tmain(/*int argc, const TCHAR* const argv[]*/)
 {
     TCHAR drives[1024];
     GetLogicalDriveStrings(ARRAYSIZE(drives), drives);
     for (const TCHAR* d = drives; *d != _T('\0'); d += _tcslen(d) + 1)
     {
+        TCHAR VolumeLabel[100];
+        GetVolumeInformation(d, VolumeLabel, ARRAYSIZE(VolumeLabel), nullptr, nullptr, nullptr, nullptr, 0);
+        
         ULARGE_INTEGER Quota, Total, Free;
         GetDiskFreeSpaceEx(d, &Quota, &Total, &Free);
         double usage = Free.QuadPart * 100.0 / Total.QuadPart;
-        
-        TCHAR VolumeLabel[100];
-        GetVolumeInformation(d, VolumeLabel, ARRAYSIZE(VolumeLabel), nullptr, nullptr, nullptr, nullptr, 0);
         
         TCHAR TotalStr[15];
         TCHAR FreeStr[15];
