@@ -82,6 +82,9 @@ Create a windows notification.
 Output the real path of a file. Useful to resolve
 hard and soft links.
 
+## [RegExport](RegExport.cpp)
+Output a tree view of the registry.
+
 ## [SendMessage](SendMessage.cpp)
 Use the [SendMessage](https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
 
