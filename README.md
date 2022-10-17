@@ -29,6 +29,9 @@ long process that you want to be alerted when it finishes
 ## [ConIcon](ConIcon.cpp)
 Set the icon of the console window
 
+## [CreateGuid](CreateGuid.cpp)
+Create a guid.
+
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
