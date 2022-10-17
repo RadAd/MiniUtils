@@ -29,9 +29,6 @@ long process that you want to be alerted when it finishes
 ## [ConIcon](ConIcon.cpp)
 Set the icon of the console window
 
-## [HexDump](HexDump.cpp)
-Dump a hex format of a binary file
-
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
@@ -41,6 +38,9 @@ List local drives
 ## [FindWindow](FindWindow.cpp)
 Search for a window by title or class.
 
+## [FormatMessage](FormatMessage.cpp)
+Lookup error message.
+
 ## [GetBinaryType](GetBinaryType.cpp)
 Show the binary type as retrieved from [GetBinaryType](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
 
@@ -49,6 +49,9 @@ Get the next keyboard character
 
 ## [GetCmdLine](GetCmdLine.cpp)
 Get the command line of a process.
+
+## [HexDump](HexDump.cpp)
+Dump a hex format of a binary file
 
 ## [IsElevated](IsElevated.cpp)
 Determine is the process is elevated or not. It inherits this status from its parent.
