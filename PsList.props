@@ -1,0 +1,7 @@
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>advapi32.lib;ntdll.lib;shlwapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>  

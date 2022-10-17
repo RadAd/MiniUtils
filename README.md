@@ -71,6 +71,9 @@ Create a named pipe and wait for a connection.
 ## [ptime](ptime.cpp)
 Display process times as retrieved from [GetProcessTimes](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)
 
+## [PsList](PsList.cpp)
+List processes using [EnumProcesses](https://learn.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-enumprocesses)
+
 ## [RadClip](RadClip.cpp)
 Output the clipboard contents.
 
