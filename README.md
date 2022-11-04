@@ -1,6 +1,7 @@
 # MiniUtils
 ![Console](https://img.shields.io/badge/platform-Console-blue.svg)
 [![Releases](https://img.shields.io/github/release/RadAd/MiniUtils.svg)](https://github.com/RadAd/MiniUtils/releases/latest)
+[![commits-since](https://img.shields.io/github/commits-since/RadAd/MiniUtils/latest.svg)](commits/master)
 [![Build](https://img.shields.io/appveyor/ci/RadAd/MiniUtils.svg)](https://ci.appveyor.com/project/RadAd/MiniUtils)
 
 One file utilties
