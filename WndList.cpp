@@ -27,8 +27,12 @@ void PrintWindowHeadings(const PrintWindowOptions& print)
             _tprintf(_T("%-10s"), _T("HANDLE"));
             break;
 
-        case _T('a'):
+        case _T('P'):
             _tprintf(_T("%-10s"), _T("PARENT"));
+            break;
+
+        case _T('R'):
+            _tprintf(_T("%-10s"), _T("ROOT"));
             break;
 
         case _T('t'):
@@ -69,8 +73,12 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(hWnd));
             break;
             
-        case _T('a'):
+        case _T('P'):
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
+            break;
+            
+        case _T('R'):
+            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
             break;
             
         case _T('t'):
@@ -114,6 +122,73 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
         first = false;
     }
     _tprintf(_T("\n"));
+}
+
+void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
+{
+    for (auto c : print.columns)
+    {
+        switch (c)
+        {
+        case _T('h'):
+            _tprintf(_T("HWND: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(hWnd));
+            break;
+            
+        case _T('P'):
+            _tprintf(_T("Parent: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
+            break;
+            
+        case _T('R'):
+            _tprintf(_T("Root: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
+            break;
+            
+        case _T('t'):
+            {
+                TCHAR Title[MAX_PATH] = _T("");
+                GetWindowText(hWnd, Title, ARRAYSIZE(Title));
+                _tprintf(_T("Title: \"%s\"\n"), Title);
+            }
+            break;
+            
+        case _T('c'):
+            {
+                TCHAR Class[MAX_PATH] = _T("");
+                GetClassName(hWnd, Class, ARRAYSIZE(Class));
+                _tprintf(_T("Class: \"%s\"\n"), Class);
+            }
+            break;
+            
+        case _T('s'):
+            {
+                LONG Style = GetWindowLong(hWnd, GWL_STYLE);
+                _tprintf(_T("Style: 0x%08X\n"), Style);
+            }
+            break;
+            
+        case _T('x'):
+            {
+                LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+                _tprintf(_T("ExStyle: 0x%08X\n"), ExStyle);
+            }
+            break;
+            
+        case _T('p'):
+            {
+                DWORD dwProcessId = 0;
+                GetWindowThreadProcessId(hWnd, &dwProcessId);
+                _tprintf(_T("PID: %d\n"), dwProcessId);
+            }
+            break;
+            
+        case _T('r'):
+            {
+                RECT rc = {};
+                GetWindowRect(hWnd, &rc);
+                _tprintf(_T("Rect: { %d, %d, %d, %d } (%d x %d)\n"), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top);
+            }
+            break;
+        }
+    }
 }
 
 BOOL CALLBACK GetWindowsEnumWindowsProc(
@@ -178,6 +253,18 @@ HWND GetWindow(const TCHAR* s)
         GetCursorPos(&pt);
         return WindowFromPoint(pt);
     }
+    else if (_tcsicmp(s, _T("{cursor.parent}")) == 0)
+    {
+        POINT pt;
+        GetCursorPos(&pt);
+        return GetParent(WindowFromPoint(pt));
+    }
+    else if (_tcsicmp(s, _T("{cursor.toplevel}")) == 0)
+    {
+        POINT pt;
+        GetCursorPos(&pt);
+        return GetAncestor(WindowFromPoint(pt), GA_ROOTOWNER);
+    }
     else if (_tcsicmp(s, _T("{console}")) == 0)
         return GetConsoleWindow();
     else if (_tcsicmp(s, _T("{foreground}")) == 0)
@@ -206,6 +293,8 @@ int _tmain(int argc, const TCHAR* const argv[])
 
         _tprintf(_T("\nwhere window/parent can be:\n"));
         _tprintf(_T("\t{cursor}     - window under cursor\n"));
+        _tprintf(_T("\t{cursor.parent}   - \n"));
+        _tprintf(_T("\t{cursor.toplevel} - \n"));
         _tprintf(_T("\t{console}    - console window\n"));
         _tprintf(_T("\t{foreground} - foreground window\n"));
     }
@@ -215,9 +304,11 @@ int _tmain(int argc, const TCHAR* const argv[])
         ListWindows(print, GetWindow(wnd), TRUE);
     else if (_tcsicmp(cmd, _T("print")) == 0)
     {
+        print.columns = _T("hpPRctsxr");
         HWND hWnd = GetWindow(wnd);
-        PrintWindowHeadings(print);
-        PrintWindow(hWnd, print);
+        //PrintWindowHeadings(print);
+        //PrintWindow(hWnd, print);
+        PrintWindowDetails(hWnd, print);
     }
     else if (_tcsicmp(cmd, _T("parent")) == 0)
     {
@@ -228,28 +319,6 @@ int _tmain(int argc, const TCHAR* const argv[])
     }
     // "show" ShowWindow();
     // "send" SendMessage();
-#if 0
-    else if (_tcsicmp(cmd, _T("cursor")) == 0)
-    {
-        POINT pt;
-        GetCursorPos(&pt);
-        HWND hWnd = WindowFromPoint(pt);
-        PrintWindowHeadings(print);
-        PrintWindow(hWnd, print);
-    }
-    else if (_tcscmp(cmd, _T("console")) == 0)
-    {
-        HWND hWnd = GetConsoleWindow();
-        PrintWindowHeadings(print);
-        PrintWindow(hWnd, print);
-    }
-    else if (_tcscmp(cmd, _T("foreground")) == 0)
-    {
-        HWND hWnd = GetForegroundWindow();
-        PrintWindowHeadings(print);
-        PrintWindow(hWnd, print);
-    }
-#endif
     else
         _tprintf(_T("Unknown command \"%s\"\n"), cmd);
     
