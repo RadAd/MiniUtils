@@ -46,7 +46,7 @@ Search for a window by title or class.
 Lookup error message.
 
 ## [GetBinaryType](GetBinaryType.cpp)
-Show the binary type as retrieved from [GetBinaryType](https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
+Show the binary type as retrieved from [GetBinaryType](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea)
 
 ## [GetCh](GetCh.cpp)
 Get the next keyboard character
@@ -63,14 +63,17 @@ Determine is the process is elevated or not. It inherits this status from its pa
 ## [IsInteractive](IsInteractive.cpp)
 Determine is the process is in an interactive mode. ie Are the stdin and stdout of type char.
 
+## [KeyHook](KeyHook.cpp)
+Output log of keys pressed using the [low-level keyboard hook](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms644985(v=vs.85)).
+
 ## [KeyScanLog](KeyScanLog.cpp)
-Output log of keys pressed.
+Output log of keys pressed using [ReadConsoleInput](https://learn.microsoft.com/en-us/windows/console/readconsoleinput).
 
 ## [Piper](Piper.cpp)
 Create a named pipe and wait for a connection.
 
 ## [ptime](ptime.cpp)
-Display process times as retrieved from [GetProcessTimes](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)
+Display process times as retrieved from [GetProcessTimes](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes)
 
 ## [PsList](PsList.cpp)
 List processes using [EnumProcesses](https://learn.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-enumprocesses)
@@ -82,7 +85,7 @@ Output the clipboard contents.
 Like RunAs except it takes the password from the commandline. Also supports elevation. And Errors are reported in a GUI MessageBox.
 
 ## [RadSpeak](RadSpeak.cpp)
-Uses [ISpVoice](https://msdn.microsoft.com/en-us/library/ee125164(v=vs.85).aspx) to
+Uses [ISpVoice](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ee125164(v=vs.85)) to
 convert text to speech.
 
 ## [RadToast](RadToast.cpp)
@@ -96,7 +99,7 @@ hard and soft links.
 Output a tree view of the registry.
 
 ## [SendMessage](SendMessage.cpp)
-Use the [SendMessage](https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
+Use the [SendMessage](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
 
 ## [Shortcut](Shortcut.cpp)
 Edit shortcut properties from the command line.
