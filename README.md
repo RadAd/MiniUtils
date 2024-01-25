@@ -101,6 +101,9 @@ Output a tree view of the registry.
 ## [SendMessage](SendMessage.cpp)
 Use the [SendMessage](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
 
+## [ShellExecute](ShellExecute.cpp)
+Launch using the [ShellExecuteEx](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa) function.
+
 ## [Shortcut](Shortcut.cpp)
 Edit shortcut properties from the command line.
 
