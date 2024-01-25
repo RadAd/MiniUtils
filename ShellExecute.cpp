@@ -4,10 +4,6 @@
 #include <windows.h>
 #include <string>
 
-#pragma comment(lib, "shell32")
-#pragma comment(lib, "ole32")
-
-
 struct WinError
 {
     DWORD dwError;
