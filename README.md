@@ -54,6 +54,9 @@ Get the next keyboard character
 ## [GetCmdLine](GetCmdLine.cpp)
 Get the command line of a process.
 
+## [GetExeType](GetExeType.cpp)
+Show the exe type as retrieved from [SHGetFileInfo](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shgetfileinfoa) using the SHGFI_EXETYPE flag.
+
 ## [HexDump](HexDump.cpp)
 Dump a hex format of a binary file
 
