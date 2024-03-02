@@ -104,6 +104,9 @@ Output a tree view of the registry.
 ## [SendMessage](SendMessage.cpp)
 Use the [SendMessage](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessage) function.
 
+## [ShellDir](ShellDir.cpp)
+Directory listing liek `dir` using [IShellFolder](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ishellfolder).
+
 ## [ShellExecute](ShellExecute.cpp)
 Launch using the [ShellExecuteEx](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexa) function.
 
