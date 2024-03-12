@@ -23,8 +23,15 @@ int _tmain(int argc, const TCHAR* argv[])
     const TCHAR* filename = nullptr;
     for (int i = 1; i < argc; ++i)
     {
-        if (filename == nullptr)
-            filename = argv[i];
+        const TCHAR* arg = argv[i];
+        if (_tcsicmp(arg, _T("/nocolor")) == 0)
+            color = false;
+        else if (_tcsicmp(arg, _T("/color")) == 0)
+            color = true;
+        else if (_tcsicmp(arg, _T("/nosqueeze")) == 0)
+            squeeze = false;
+        else if (filename == nullptr)
+            filename = arg;
         else
             _ftprintf(stderr, _T("Too many parameters.\n"));
     }
@@ -35,7 +42,7 @@ int _tmain(int argc, const TCHAR* argv[])
     FILE* input = nullptr;
     if (filename == nullptr)
     {
-        _ftprintf(stderr, _T("HexDump <filename>\n"));
+        _ftprintf(stderr, _T("HexDump [/color] [/nocolor] [/nosqueeze] <filename>\n"));
         return EXIT_FAILURE;
     }
     else if (_tcscmp(filename, _T("-")) == 0)
@@ -110,6 +117,7 @@ int _tmain(int argc, const TCHAR* argv[])
     if (color) setcolor(&curcolor, 0);
 
     delete[] data;
+    delete[] prev;
 
     if (input != stdin)
         fclose(input);
