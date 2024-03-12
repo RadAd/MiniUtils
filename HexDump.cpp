@@ -18,7 +18,8 @@ void setcolor(int* curcolor, int c)
 
 int _tmain(int argc, const TCHAR* argv[])
 {
-    bool color = true;
+    bool color = _isatty(_fileno(stdout));
+    bool squeeze = true;
     const TCHAR* filename = nullptr;
     for (int i = 1; i < argc; ++i)
     {
@@ -28,10 +29,8 @@ int _tmain(int argc, const TCHAR* argv[])
             _ftprintf(stderr, _T("Too many parameters.\n"));
     }
 
-    if (!_isatty(_fileno(stdin)))
+    if (filename == nullptr && !_isatty(_fileno(stdin)))
         filename = _T("-");
-    if (!_isatty(_fileno(stdout)))
-        color = false;
 
     FILE* input = nullptr;
     if (filename == nullptr)
@@ -62,34 +61,50 @@ int _tmain(int argc, const TCHAR* argv[])
     const size_t size = 16;
     int curcolor = 0;
     BYTE* data = new BYTE[size];
+    BYTE* prev = new BYTE[size];
+    size_t prevcount = 0;
+    bool same = false;
     size_t offset = 0;
     while (true)
     {
-        size_t count = fread_s(data, size * sizeof(BYTE), 1, size, input);
+        const size_t count = fread_s(data, size * sizeof(BYTE), 1, size, input);
         if (count == 0)
             break;
 
-        if (color) setcolor(&curcolor, 33);
-        _tprintf(_T("%08Xh:"), (unsigned int) offset);
-        for (size_t i = 0; i < count; ++i)
+        if (squeeze && count == prevcount && memcmp(prev, data, count * sizeof(BYTE)) == 0)
         {
-            bool isp = isprint(data[i]) != 0;
-            if (color) setcolor(&curcolor, isp ? 34 : 0);
-            _tprintf(_T(" %02X"), data[i]);
+            if (!same)
+                _tprintf(_T(" ***\n"));
+            same = true;
         }
-        for (size_t i = count; i < size; ++i)
+        else
         {
-            _tprintf(_T("   "));
-        }
-        _tprintf(_T(" "));
-        for (size_t i = 0; i < count; ++i)
-        {
-            bool isp = isprint(data[i]) != 0;
-            if (color) setcolor(&curcolor, isp ? 34 : 0);
-            _tprintf(_T("%c"), isp ? data[i] : '.');
-        }
-        _tprintf(_T("\n"));
+            same = false;
 
+            if (color) setcolor(&curcolor, 33);
+            _tprintf(_T("%08Xh:"), (unsigned int) offset);
+            for (size_t i = 0; i < count; ++i)
+            {
+                bool isp = isprint(data[i]) != 0;
+                if (color) setcolor(&curcolor, isp ? 34 : 0);
+                _tprintf(_T(" %02X"), data[i]);
+            }
+            for (size_t i = count; i < size; ++i)
+            {
+                _tprintf(_T("   "));
+            }
+            _tprintf(_T(" "));
+            for (size_t i = 0; i < count; ++i)
+            {
+                bool isp = isprint(data[i]) != 0;
+                if (color) setcolor(&curcolor, isp ? 34 : 0);
+                _tprintf(_T("%c"), isp ? data[i] : '.');
+            }
+            _tprintf(_T("\n"));
+
+            memcpy(prev, data, count * sizeof(BYTE));
+            prevcount = count;
+        }
         offset += count;
     }
     if (color) setcolor(&curcolor, 0);
