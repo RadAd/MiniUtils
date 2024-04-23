@@ -81,8 +81,14 @@ Display process times as retrieved from [GetProcessTimes](https://learn.microsof
 ## [PsList](PsList.cpp)
 List processes using [EnumProcesses](https://learn.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-enumprocesses)
 
+## [RadAssoc](RadAssoc.cpp)
+Replacement for assoc - assigning file type associations. Also support for current user settings.
+
 ## [RadClip](RadClip.cpp)
 Output the clipboard contents.
+
+## [RadFType](RadFType.cpp)
+Replacement for ftype - assigning file type commands. Also support for current user settings.
 
 ## [RadRunAs](RadRunAs.cpp)
 Like RunAs except it takes the password from the commandline. Also supports elevation. And Errors are reported in a GUI MessageBox.
