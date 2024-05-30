@@ -125,6 +125,9 @@ Edit shortcut properties from the command line.
 ## [Sleep](Sleep.cpp)
 Sleep in seconds.
 
+## [SysColors](SysColors.cpp)
+Edit system colors. See [GetSysColor](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getsyscolor).
+
 ## [TimeStamp](TimeStamp.cpp)
 Copies stdin to stdout prepending each line with a timestamp.
 
