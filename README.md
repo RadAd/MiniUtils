@@ -33,6 +33,9 @@ Set the icon of the console window
 ## [CreateGuid](CreateGuid.cpp)
 Create a guid.
 
+## [DirWatch](DirWatch.cpp)
+Watch for changes in a direcory using [ReadDirectoryChanges](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw).
+
 ## [DragDrop](DragDrop.cpp)
 Simulates drag and dropping a file onto a window
 
