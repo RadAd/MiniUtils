@@ -56,7 +56,8 @@ int DoShortcut(int argc, const TCHAR *argv[])
     CComPtr<IPersistFile> sppf;
     CHK_HR(sppf.CoCreateInstance(CLSID_ShellLink));
     if (PathFileExistsW(file))
-        CHK_HR(sppf->Load(file, STGM_READWRITE));
+        if (FAILED(sppf->Load(file, STGM_READWRITE)))
+            CHK_HR(sppf->Load(file, STGM_READ));
 
     CComQIPtr<IShellLink> spsl(sppf);
     if (!spsl)
