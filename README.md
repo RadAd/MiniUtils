@@ -20,7 +20,7 @@ Combination of cat and tee. Read from a file or stdin and output to a file or st
 ## [catwin](catwin.c)
 Read and output a file to stdout using windows file functions. Works with named pipes also.
 
-## [ClipHist](Ccliphist.cpp)
+## [ClipHist](cliphist.cpp)
 Output clipboard history and select a history item.
 
 ## [ClipWatch](ClipWatch.cpp)
