@@ -12,9 +12,9 @@
 #define ARRAYSIZE(x)    (sizeof(x)/sizeof(x[0]))
 #define FILE_ERR ((FILE*) -1)
 
-FILE* argfile(int i, FILE* def, const TCHAR* mode)
+FILE* argfile(int i, FILE* def, const TCHAR* mode, const TCHAR* descvalue, const TCHAR* desc)
 {
-    const TCHAR* name = argnum(i);
+    const TCHAR* name = argnumdesc(i, NULL, descvalue, desc);
     if (name == NULL)
         return NULL;
     else if (strcmp(name, "-") == 0)
@@ -52,7 +52,7 @@ void appendFileList(FileList* fl, FILE* nf)
     fl->files[fl->size++] = nf;
 }
 
-FileList argfilelist(int i, FILE* def, const TCHAR* mode)
+FileList argfilelist(int i, FILE* def, const TCHAR* mode, const TCHAR* descvalue, const TCHAR* desc)
 {
     FileList fl = {
         malloc(1 * sizeof(FILE*)),
@@ -61,7 +61,7 @@ FileList argfilelist(int i, FILE* def, const TCHAR* mode)
     };
     
     FILE* nf = NULL;
-    while ((nf = argfile(i++, def, mode)) != NULL)
+    while ((nf = argfile(i++, def, mode, descvalue, desc)) != NULL)
     {
         appendFileList(&fl, nf);
     }
@@ -81,26 +81,18 @@ BOOL fileListErr(const FileList* fl)
 
 int _tmain(int argc, const TCHAR* const argv[])
 {
-    arginit(argc, argv);
-    BOOL unicode = argswitch(_T("/U"));
-    FILE* i = argfile(1, stdin, _T("rb"));
-    FileList o = argfilelist(2, stdout, _T("wb"));
+    arginit(argc, argv, _T("Read and output a file to stdout"));
+    BOOL unicode = argswitchdesc(_T("/U"), _T("Use unicode mode"));
+    FILE* i = argfile(1, stdin, _T("rb"), _T("input"), _T("The file to read ('-' for stdin, 'CONIN$' for console)"));   // TODO Should be a mandatory option
+    argoptional();
+    FileList o = argfilelist(2, stdout, _T("wb"), _T("output..."), _T("The file(s) to write ('-' for stdout, 'CONOUT$' for console)")); // TODO Should be an optional option (with many)
 	if (!argcleanup())
         return EXIT_FAILURE;
+	if (argusage(i == NULL))
+        return EXIT_SUCCESS;
     
     if (i == FILE_ERR || fileListErr(&o))
         return EXIT_FAILURE;
-    else if (i == NULL)
-    {
-        _ftprintf(stderr, _T("%s [/U] input <output>+\n"), argapp());
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("Read and output a file to stdout.\n"));
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("  input           The file to read ('-' for stdin, 'CONIN$' for console)\n"));
-        _ftprintf(stderr, _T("  output          The file to write ('-' for stdout, 'CONOUT$' for console)\n"));
-        _ftprintf(stderr, _T("  /U              Use unicode mode\n"));
-        return EXIT_FAILURE;
-    }
 
     if (o.size == 0)
         appendFileList(&o, stdout);

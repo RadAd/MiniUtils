@@ -25,9 +25,9 @@ void Process(HANDLE hInput, HANDLE hOutput)
     }
 }
 
-HANDLE argfile(int i)
+HANDLE argfile(int i, const TCHAR* descvalue, const TCHAR* desc)
 {
-    const TCHAR* name = argnum(i);
+    const TCHAR* name = argnumdesc(i, NULL, descvalue, desc);
     if (name == NULL)
         return NULL;
     else if (_tcscmp(name, _T("-")) == 0)
@@ -56,7 +56,7 @@ HANDLE argfile(int i)
 
             if (GetLastError() != ERROR_PIPE_BUSY)
             {
-                _ftprintf(stderr, TEXT("Error opening file %d\n"), GetLastError());
+                _ftprintf(stderr, TEXT("Error(%d): opening file\n"), GetLastError());
                 hPipe = FILE_ERR;
                 break;
             }
@@ -77,23 +77,16 @@ HANDLE argfile(int i)
 
 int _tmain(int argc, const TCHAR* const argv[])
 {
-    arginit(argc, argv);
-    HANDLE i = argfile(1);
+    arginit(argc, argv, _T("Read and output a file to stdout using windows file functions"));
+    HANDLE i = argfile(1, _T("file"), _T("The file to read ('-' for stdin)"));
     HANDLE o = GetStdHandle(STD_OUTPUT_HANDLE);
     if (!argcleanup())
         return EXIT_FAILURE;
+	if (argusage(i == NULL))
+        return EXIT_SUCCESS;
 
     if (i == FILE_ERR)
         return EXIT_FAILURE;
-    else if (i == NULL)
-    {
-        _ftprintf(stderr, _T("catwin file\n"));
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("Read and output a file to stdout using windows file functions.\n"));
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("  file            The file to read ('-' for stdin)\n"));
-        return EXIT_FAILURE;
-    }
 
     int ret = EXIT_SUCCESS;
     Process(i, o);

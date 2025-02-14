@@ -10,37 +10,24 @@
 // TODO: Save to file
 // Save HBITMAP to file
 
-#define COLOR(n, s) "\x1B[" #n "m" s "\x1B[0m"
-#define COMMAND(s) COLOR(37, s)
-#define OPTION(s) COLOR(33, s)
-#define VALUE(s) COLOR(36, s)
-
 int _tmain(int argc, TCHAR const* const* const argv)
 {
-    arginit(argc, argv);
-    
-    const int mode = argswitch(_T("/U")) ? _O_U16TEXT : _O_U8TEXT;
-    int format = _ttoi(argvalue(_T("/F"), _T("0")));
+    arginit(argc, argv, _T("Output clipboard contents to stdout"));
 
-    const bool showUsage = argswitch(_T("/?"));
-
-    if (showUsage)
-    {
-        _ftprintf(stdout, _T(COMMAND("%s") " - Output clipboard contents to stdout\n"), argapp());
-        _ftprintf(stdout, _T("\n"));
-        _ftprintf(stdout, _T(COMMAND("%s") " [/" OPTION("U") "] [/" OPTION("F") "=" VALUE("n") "]\n"), argapp());
-        _ftprintf(stdout, _T("   /" OPTION("U") "    Output in unicode\n"));
-        _ftprintf(stdout, _T("   /" OPTION("F") "    Clipboard format\n"));
-        _ftprintf(stdout, _T("         where " VALUE("n") " is " VALUE("1") " for text, " VALUE("2") " for bitmap, " VALUE("13") " for unicode\n"));
-        _ftprintf(stdout, _T("\n"));
-        _ftprintf(stdout, _T("\tErrorcode " VALUE("1") " if clipboard is empty.\n"));
-        _ftprintf(stdout, _T("\tErrorcode " VALUE("2") " if unknown parameter.\n"));
-        _ftprintf(stdout, _T("\tErrorcode " VALUE("3") " if unknown format.\n"));
-        return 0;
-    }
+    const int mode = argswitchdesc(_T("/U"), _T("Output in unicode")) ? _O_U16TEXT : _O_U8TEXT;
+    int format = _ttoi(argvaluedesc(_T("/F"), _T("0"), _T("<format>"), _T("Clipboard format")));
 
     if (!argcleanup())
         return 2;
+    if (argusage())
+    {
+        _ftprintf(stdout, _T("        where " ARG_VALUE("<format>") " is " ARG_VALUE("1") " for text, " ARG_VALUE("2") " for bitmap, " ARG_VALUE("13") " for unicode\n"));
+        _ftprintf(stdout, _T("\n"));
+        _ftprintf(stdout, _T("\tErrorcode " ARG_VALUE("1") " if clipboard is empty.\n"));
+        _ftprintf(stdout, _T("\tErrorcode " ARG_VALUE("2") " if unknown parameter.\n"));
+        _ftprintf(stdout, _T("\tErrorcode " ARG_VALUE("3") " if unknown format.\n"));
+        return 0;
+    }
 
     _setmode(_fileno(stdout), mode);
 
