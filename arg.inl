@@ -128,7 +128,6 @@ BOOL argusage(BOOL bforce ARG_OPTIONAL(FALSE))
             if (argargnumdescription->desc != NULL)
                 _ftprintf(stdout, _T("   " ARG_OPTION("%s") "\t%s\n"), argargnumdescription->arg, argargnumdescription->desc);
         }
-        _ftprintf(stdout, _T("\n"));
     }
     return TRUE;
 }

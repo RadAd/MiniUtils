@@ -4,6 +4,7 @@
 #include <tchar.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "arg.inl"
 
 typedef unsigned char BYTE;
 
@@ -18,34 +19,25 @@ void setcolor(int* curcolor, int c)
 
 int _tmain(int argc, const TCHAR* argv[])
 {
+    arginit(argc, argv);
     bool color = _isatty(_fileno(stdout));
-    bool squeeze = true;
-    const TCHAR* filename = nullptr;
-    for (int i = 1; i < argc; ++i)
-    {
-        const TCHAR* arg = argv[i];
-        if (_tcsicmp(arg, _T("/nocolor")) == 0)
-            color = false;
-        else if (_tcsicmp(arg, _T("/color")) == 0)
-            color = true;
-        else if (_tcsicmp(arg, _T("/nosqueeze")) == 0)
-            squeeze = false;
-        else if (filename == nullptr)
-            filename = arg;
-        else
-            _ftprintf(stderr, _T("Too many parameters.\n"));
-    }
+    if (argswitch(_T("/color")))
+        color = true;
+    if (argswitch(_T("/nocolor")))
+        color = false;
+    bool squeeze = argswitchdesc(_T("/nosqueeze"), _T("Do not skip over like lines"));
+    const TCHAR* filename = argnumdesc(1, nullptr, _T("filename"), nullptr);
+	if (!argcleanup())
+        return EXIT_FAILURE;
 
     if (filename == nullptr && !_isatty(_fileno(stdin)))
         filename = _T("-");
 
+    if (argusage(filename == nullptr))
+        return EXIT_SUCCESS;
+
     FILE* input = nullptr;
-    if (filename == nullptr)
-    {
-        _ftprintf(stderr, _T("HexDump [/color] [/nocolor] [/nosqueeze] <filename>\n"));
-        return EXIT_FAILURE;
-    }
-    else if (_tcscmp(filename, _T("-")) == 0)
+    if (_tcscmp(filename, _T("-")) == 0)
     {
         input = stdin;
         int result = _setmode(_fileno(stdin), _O_BINARY);
