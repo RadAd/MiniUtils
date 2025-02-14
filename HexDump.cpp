@@ -25,7 +25,7 @@ int _tmain(int argc, const TCHAR* argv[])
         color = true;
     if (argswitch(_T("/nocolor")))
         color = false;
-    bool squeeze = argswitchdesc(_T("/nosqueeze"), _T("Do not skip over like lines"));
+    bool squeeze = !argswitchdesc(_T("/nosqueeze"), _T("Do not skip over like lines"));
     const TCHAR* filename = argnumdesc(1, nullptr, _T("filename"), nullptr);
 	if (!argcleanup())
         return EXIT_FAILURE;
