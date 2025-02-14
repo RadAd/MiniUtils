@@ -82,7 +82,7 @@ BOOL GetLogonFromToken(HANDLE hToken, LPTSTR lpUser, DWORD nSizeUser, LPTSTR lpD
     {
         DWORD dwResult = GetLastError();
         if (dwResult == ERROR_NONE_MAPPED)
-            strcpy_s(lpUser, nSizeUser, "NONE_MAPPED");
+            _tcscpy_s(lpUser, nSizeUser, "NONE_MAPPED");
     }
     else
     {
@@ -136,38 +136,147 @@ void PrintProcess(DWORD processID, HANDLE hProcess, LPCTSTR lpFilter)
     }
 }
 
+struct ProcessInfo
+{
+    DWORD dwProcessId;
+    DWORD dwParentProcessId;
+    HANDLE hProcess;
+};
+
+void PrintTreeItem(const ProcessInfo& pi, const TCHAR* pre, bool last)
+{
+    TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+    GetProcessName(pi.hProcess, szProcessName, ARRAYSIZE(szProcessName));
+
+    _tprintf(TEXT("%s"), pre);
+    _tprintf(last ? TEXT("└─ ") : TEXT("├─ "));
+    _tprintf(TEXT("%-5u "), pi.dwProcessId);
+    _tprintf(TEXT("%s "), szProcessName);
+    _tprintf(TEXT("\n"));
+}
+
+void PrintTree(DWORD processID, const TCHAR* pre, const ProcessInfo* processinfo, const DWORD cProcesses)
+{
+    TCHAR lpre[100];
+    _tcscpy_s(lpre, ARRAYSIZE(lpre), pre);
+    _tcscat_s(lpre, ARRAYSIZE(lpre), TEXT("│  "));
+    TCHAR lpre2[100];
+    _tcscpy_s(lpre2, ARRAYSIZE(lpre2), pre);
+    _tcscat_s(lpre2, ARRAYSIZE(lpre2), TEXT("   "));
+
+    unsigned int p[1024];
+    unsigned int count = 0;
+    for (unsigned int i = 0; i < cProcesses; i++)
+    {
+        const ProcessInfo& pi = processinfo[i];
+        if (pi.dwParentProcessId == processID)
+            p[count++] = i;
+    }
+
+    for (unsigned int i = 0; i < count; i++)
+    {
+        const bool last = i == count - 1;
+        const ProcessInfo& pi = processinfo[p[i]];
+        PrintTreeItem(pi, pre, last);
+        PrintTree(pi.dwProcessId, last ? lpre2 : lpre, processinfo, cProcesses);
+    }
+}
+
 int main(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    bool showAll = argswitch(_T("/a"));
+    const bool showAll = argswitch(_T("/a"));
+    const bool showTree = argswitch(_T("/t"));
     LPCTSTR lpFilter = argnum(1);
     if (!argcleanup())
         return EXIT_FAILURE;
-    
-    DWORD aProcesses[1024], cbNeeded;
 
+    DWORD aProcesses[1024], cbNeeded;
     if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
     {
         _tprintf(TEXT("Error EnumProcesses\n"));
         return 1;
     }
-
     const DWORD cProcesses = cbNeeded / sizeof(DWORD);
-    
-    HANDLE hProcesses[1024];
-    for (unsigned int i = 0; i < cProcesses; i++)
+
+    if (showTree)
     {
-        hProcesses[i] = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, aProcesses[i]);
-        if (hProcesses[i] == NULL)
-            hProcesses[i] = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION  , FALSE, aProcesses[i]);
+        ProcessInfo processinfo[1024];
+        for (unsigned int i = 0; i < cProcesses; i++)
+        {
+            ProcessInfo& pi = processinfo[i];
+            pi.dwProcessId = aProcesses[i];
+
+            pi.hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pi.dwProcessId);
+            if (pi.hProcess == NULL)
+                pi.hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pi.dwProcessId);
+
+            pi.dwParentProcessId = pi.hProcess ? GetParentProcessId(pi.hProcess) : -1;
+        }
+
+        unsigned int p[1024];
+        unsigned int count = 0;
+        if (lpFilter != nullptr)
+        {
+            const DWORD dwProcessId = _ttoi(lpFilter);
+            for (unsigned int i = 0; i < cProcesses; i++)
+            {
+                const ProcessInfo& pi = processinfo[i];
+                if (pi.dwProcessId == dwProcessId)
+                    p[count++] = i;
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0; i < cProcesses; i++)
+            {
+                const ProcessInfo& pi = processinfo[i];
+                if (showAll || pi.hProcess != NULL)
+                {
+                    bool fFound = false;
+                    for (unsigned int j = 0; j < cProcesses; j++)
+                    {
+                        if (processinfo[j].dwProcessId == pi.dwParentProcessId)
+                        {
+                            fFound = true;
+                            break;
+                        }
+                    }
+                    if (!fFound)
+                        p[count++] = i;
+                }
+            }
+        }
+
+        for (unsigned int i = 0; i < count; i++)
+        {
+            const bool last = i == count - 1;
+            const ProcessInfo& pi = processinfo[p[i]];
+            PrintTreeItem(pi, TEXT(""), last);
+            PrintTree(pi.dwProcessId, last ? TEXT("   ") : TEXT("│  "), processinfo, cProcesses);
+        }
+
+        for (unsigned int i = 0; i < cProcesses; i++)
+            CloseHandle(processinfo[p[i]].hProcess);
     }
-    for (unsigned int i = 0; i < cProcesses; i++)
-        if (hProcesses[i] != NULL)
-            PrintProcess(aProcesses[i], hProcesses[i], lpFilter);
-        else if (showAll)
-            _tprintf(TEXT("%5u \n"), aProcesses[i]);
-    for (unsigned int i = 0; i < cProcesses; i++)
-        CloseHandle(hProcesses[i]);
+    else
+    {
+        for (unsigned int i = 0; i < cProcesses; i++)
+        {
+            const DWORD dwProcessId = aProcesses[i];
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
+            if (hProcess == NULL)
+                hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessId);
+
+            if (hProcess != NULL)
+            {
+                PrintProcess(dwProcessId, hProcess, lpFilter);
+                CloseHandle(hProcess);
+            }
+            else if (showAll)
+                _tprintf(TEXT("%5u \n"), dwProcessId);
+        }
+    }
 
     return EXIT_SUCCESS;
 }
