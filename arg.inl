@@ -111,9 +111,9 @@ BOOL argusage(BOOL bforce ARG_OPTIONAL(FALSE))
         {
             const ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[i];
             if (i >= g_argargnumoptional)
-                _ftprintf(stdout, _T(" <" ARG_OPTION("%s") ">"), argargnumdescription->arg);
+                _ftprintf(stdout, _T(" [" ARG_OPTION("%s") "]"), argargnumdescription->arg);
             else
-                _ftprintf(stdout, _T(" " ARG_OPTION("%s")), argargnumdescription->arg);
+                _ftprintf(stdout, _T(" <" ARG_OPTION("%s")) ">", argargnumdescription->arg);
         }
         _ftprintf(stdout, _T("\n"));
         for (i = 0; i < g_argargdescriptioncount; ++i)

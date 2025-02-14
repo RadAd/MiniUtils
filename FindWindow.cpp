@@ -53,33 +53,27 @@ HWND FindWindowPlus(LPCTSTR lpClassName, LPCTSTR lpWindowName)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    LPCTSTR lpClassName = argvalue(_T("/class"));
-    LPCTSTR lpWindowName = argvalue(_T("/title"));
+    LPCTSTR lpClassName = argvaluedesc(_T("/class"), nullptr, _T("<class>"), nullptr);
+    LPCTSTR lpWindowName = argvaluedesc(_T("/title"), nullptr, _T("<title>"), nullptr);
 	if (!argcleanup())
         return EXIT_FAILURE;
-        
-    if (lpClassName == nullptr && lpWindowName == nullptr)
+    if (argusage(lpClassName == nullptr && lpWindowName == nullptr))
+        return EXIT_SUCCESS;
+
+    const HWND hWnd = FindWindowPlus(lpClassName, lpWindowName);
+    if (hWnd != NULL)
     {
-        _ftprintf(stderr, _T("%s [/class=<class>] [/title=<title>]\n"), argapp());
+        //_tprintf(_T("HWND: 0x%08X\n"), HandleToUlong(hWnd));
+        return EXIT_SUCCESS;
+    }
+    else if (GetLastError() == 0)
+    {
+        _tprintf(_T("Error: Not found\n"));
         return EXIT_FAILURE;
     }
     else
     {
-        const HWND hWnd = FindWindowPlus(lpClassName, lpWindowName);
-        if (hWnd != NULL)
-        {
-            //_tprintf(_T("HWND: 0x%08X\n"), HandleToUlong(hWnd));
-            return EXIT_SUCCESS;
-        }
-        else if (GetLastError() == 0)
-        {
-            _tprintf(_T("Error: Not found\n"));
-            return EXIT_FAILURE;
-        }
-        else
-        {
-            _tprintf(_T("Error: %d\n"), GetLastError());
-            return EXIT_FAILURE;
-        }
+        _tprintf(_T("Error: %d\n"), GetLastError());
+        return EXIT_FAILURE;
     }
 }

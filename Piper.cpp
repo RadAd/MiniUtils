@@ -28,27 +28,16 @@ void Process(HANDLE hInput, HANDLE hOutput)
 
 int _tmain(int argc, const TCHAR* const argv[])
 {
-	TCHAR name[MAX_PATH] = TEXT("\\\\.\\pipe\\");
-	
-	arginit(argc, argv);
-	BOOL bInput = argswitch("/I");
-	const TCHAR* pipe = argnum(1);
+	arginit(argc, argv, _T("Create a named pipe and wait for a connection"));
+	BOOL bInput = argswitchdesc(TEXT("/I"), _T("Input mode. Copy stdin to client. Default is Output mode. Copy client to stdout."));
+	const TCHAR* pipe = argnumdesc(1, nullptr, _T("name"), _T("The name of the pipe"));
 	if (!argcleanup())
         return EXIT_FAILURE;
-	
-	if (pipe == nullptr)
-	{
-		_ftprintf(stderr, TEXT("Piper [/I] name\n"));
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("Create a named pipe and wait for a connection.\n"));
-        _ftprintf(stderr, _T("\n"));
-        _ftprintf(stderr, _T("  name            The name of the pipe\n"));
-        _ftprintf(stderr, _T("  /I              Input mode. Copy stdin to client.\n"));
-        _ftprintf(stderr, _T("  /-I             Output mode (default). Copy client to stdout.\n"));
-		return EXIT_FAILURE;
-	}
-	else
-        _tcscat_s(name, pipe);
+    if (argusage(pipe == nullptr))
+        return EXIT_SUCCESS;
+
+	TCHAR name[MAX_PATH] = TEXT("\\\\.\\pipe\\");
+    _tcscat_s(name, pipe);
 
 	HANDLE hPipe = CreateNamedPipe(name, (bInput ? PIPE_ACCESS_OUTBOUND : PIPE_ACCESS_INBOUND) | FILE_FLAG_FIRST_PIPE_INSTANCE, PIPE_TYPE_BYTE | (bInput ? PIPE_READMODE_BYTE : PIPE_READMODE_BYTE) | PIPE_WAIT, 1, 0, 0, NMPWAIT_USE_DEFAULT_WAIT, nullptr);
 	if (hPipe == INVALID_HANDLE_VALUE)

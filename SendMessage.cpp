@@ -744,23 +744,21 @@ const TCHAR* GetMsgName(UINT u)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    HWND hWnd = GetWindow(argnum(1));
-    UINT uMsg = GetMsg(argnum(2));
-    WPARAM wParam = ConvertToULong(argnum(3), 0);
-    LPARAM lParam = ConvertToULong(argnum(4), 0);
+    HWND hWnd = GetWindow(argnumdesc(1, nullptr, _T("hwnd"), nullptr));
+    UINT uMsg = GetMsg(argnumdesc(2, nullptr, _T("msg"), nullptr));
+    argoptional();
+    WPARAM wParam = ConvertToULong(argnumdesc(3, nullptr, _T("wparam"), nullptr), 0);
+    LPARAM lParam = ConvertToULong(argnumdesc(4, nullptr, _T("lparam"), nullptr), 0);
 	if (!argcleanup())
         return EXIT_FAILURE;
-        
-    if (hWnd == NULL)
+    if (argusage(hWnd == NULL))
     {
-        _ftprintf(stderr, _T("%s <hwnd> <msg> [wparam] [lparam]\n"), argapp());
-        return EXIT_FAILURE;
+        _ftprintf(stdout, _T("   where " ARG_OPTION("hwnd") " can be in hex or one of " ARG_VALUE("{cursor}") ", " ARG_VALUE("{console}") " or " ARG_VALUE("{foreground}") "\n"));
+        return EXIT_SUCCESS;
     }
-    else
-    {
-        const LRESULT lResult = SendMessage(hWnd, uMsg, wParam, lParam);
-        _ftprintf(stderr, _T("0x%08") _T(PRIXPTR) _T(" %s(%#x) %llu %llu -> %llu\n"), reinterpret_cast<uintptr_t>(hWnd), GetMsgName(uMsg), uMsg, wParam, lParam, lResult);
-        //return EXIT_SUCCESS;
-        return (int) lResult;
-    }
+
+    const LRESULT lResult = SendMessage(hWnd, uMsg, wParam, lParam);
+    _ftprintf(stderr, _T("0x%08") _T(PRIXPTR) _T(" %s(%#x) %llu %llu -> %llu\n"), reinterpret_cast<uintptr_t>(hWnd), GetMsgName(uMsg), uMsg, wParam, lParam, lResult);
+    //return EXIT_SUCCESS;
+    return (int) lResult;
 }

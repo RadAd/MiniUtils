@@ -69,11 +69,6 @@ BOOL PrintANSI(const HANDLE hOutput, const TCHAR* const format, ...)
         return e; \
     };
 
-#define COLOR(n, s) "\x1B[" #n "m" s "\x1B[0m"
-#define COMMAND(s) COLOR(37, s)
-#define OPTION(s) COLOR(33, s)
-#define VALUE(s) COLOR(36, s)
-
 int _tmain(int argc, const TCHAR* const argv[])
 {
     //const HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
@@ -81,32 +76,14 @@ int _tmain(int argc, const TCHAR* const argv[])
     TCHAR Buffer[1024] = _T("");
 
     arginit(argc, argv);
-    BOOL help = argswitch(_T("/?"));
-    const TCHAR* prompt = argnum(1, _T("? "));
+    const TCHAR* prompt = argnumdesc(1, _T("? "), _T("prompt"), nullptr);
     // TODO Expand prompt with cmd-like prompt extensions
-    StrCopyIf(Buffer, argvalue(_T("/Default")));
+    StrCopyIf(Buffer, argvaluedesc(_T("/Default"), nullptr, _T("initial_value"), nullptr));
     // TODO Get default value from hInput
     if (!argcleanup())
         return EXIT_FAILURE;
-
-    if (help)
-    {
-        if (GetFileType(hOutput) == FILE_TYPE_CHAR)
-        {
-            CHECK(PrintConsole(hOutput, _T(COMMAND("%s")
-                " [/" OPTION("Default") "=" VALUE("initial_value") "]"
-                " [" VALUE("prompt") "]"
-                "\n"), argapp()), _T("PrintConsole Help\n"));
-        }
-        else
-        {
-            CHECK(PrintANSI(hOutput, _T("%s"
-                " [/" "Default" "=" "initial_value" "]"
-                " [" "prompt" "]"
-                "\n"), argapp()), _T("PrintANSI Help\n"));
-        }
+    if (argusage())
         return EXIT_SUCCESS;
-    }
 
     auto hConsoleInput = CreateUnique(CreateFile(_T("CONIN$"), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0));
     CHECK(hConsoleInput != NULL, _T("CreateFile CONIN$\n"))
