@@ -4,6 +4,7 @@
 #include <tchar.h>
 #include <memory>
 #include <vector>
+#include "arg.inl"
 
 template <class T>
 auto CreateUnique(HANDLE h, T* f)
@@ -25,13 +26,12 @@ inline int StrLen(const PUNICODE_STRING s)
 
 int _tmain(int argc, TCHAR *argv[])
 {
-    if (argc < 2)
-    {
-        _fputts(_T("Usage: GetCmdLine [pid]\n"), stderr);
-        return ERROR_INVALID_FUNCTION;
-    }
-
-    const int pid = _tstoi(argv[1]);
+    arginit(argc, argv, _T("Show command line for a process"));
+    const int pid = _tstoi(argnumdesc(1, _T("0"), _T("pid"), _T("Process id")));
+	if (!argcleanup())
+        return EXIT_FAILURE;
+	if (argusage(pid == 0))
+        return EXIT_SUCCESS;
 
     auto hProcess = CreateUnique(OpenProcess(
         PROCESS_QUERY_INFORMATION | /* required for NtQueryInformationProcess */
