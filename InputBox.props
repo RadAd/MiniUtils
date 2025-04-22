@@ -2,9 +2,11 @@
   <PropertyGroup>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="Windows.props" />
+  </ImportGroup>
   <ItemDefinitionGroup>
     <Link>
-      <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>user32.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
