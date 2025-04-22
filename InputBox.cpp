@@ -1,4 +1,7 @@
+#define STRICT
+//#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <tchar.h>
 #include "arg.inl"
@@ -13,6 +16,20 @@
 #define IDC_PROMPT 101
 #define IDC_EDIT1 102
 
+BOOL SetClientWindowRect(_In_ HWND hWnd, _In_ const RECT* prc)
+{
+    return SetWindowPos(hWnd, NULL, prc->left, prc->top, prc->right - prc->left, prc->bottom - prc->top, SWP_NOZORDER);
+}
+
+BOOL GetClientWindowRect(_In_ HWND hWnd, _In_ RECT* prc)
+{
+    HWND hParent = GetParent(hWnd);
+    BOOL b = GetWindowRect(hWnd, prc);
+    ::ScreenToClient(hParent, (POINT*) &prc->left);
+    ::ScreenToClient(hParent, (POINT*) &prc->right);
+    return b;
+}
+
 struct InputBoxParam
 {
     LPCTSTR title;
@@ -21,11 +38,69 @@ struct InputBoxParam
     TCHAR result[2048];
 };
 
+struct MoveChildData
+{
+    int dy;
+};
+
+BOOL CALLBACK MoveChild(
+  _In_ HWND   hWnd,
+  _In_ LPARAM lParam
+)
+{
+    const MoveChildData* mcd = (MoveChildData*) lParam;
+    const int id = GetWindowLong(hWnd, GWL_ID);
+    switch (id)
+    {
+    case IDC_EDIT1:
+    case IDOK:
+    case IDCANCEL:
+        {
+            RECT rc;
+            GetClientWindowRect(hWnd, &rc);
+            rc.top += mcd->dy;
+            rc.bottom += mcd->dy;
+            SetClientWindowRect(hWnd, &rc);
+        }
+        break;
+    }
+    return TRUE;
+}
+
+void CalcRect(HWND hWnd, RECT* prc)
+{
+    TCHAR text[1024];
+    HDC hDC = GetWindowDC(hWnd);
+    HFONT hFont = GetWindowFont(hWnd);
+    HFONT hOldFont = SelectFont(hDC, hFont);
+    GetWindowText(hWnd, text, ARRAYSIZE(text));
+    DrawText(hDC, text, -1, prc, DT_CALCRECT | DT_WORDBREAK);
+    SelectFont(hDC, hOldFont);
+    ReleaseDC(hWnd, hDC);
+}
+
+void FixSize(HWND hDlg)
+{
+    HWND hPrompt = GetDlgItem(hDlg, IDC_PROMPT);
+    RECT rc;
+    GetClientWindowRect(hPrompt, &rc);
+    RECT nrc = rc;
+    CalcRect(hPrompt, &nrc);
+    SetClientWindowRect(hPrompt, &nrc);
+
+    MoveChildData mcd = {};
+    mcd.dy = (nrc.bottom - nrc.top) - (rc.bottom - rc.top);
+    EnumChildWindows(hDlg, MoveChild, LPARAM(&mcd));
+
+    GetClientWindowRect(hDlg, &rc);
+    rc.bottom += mcd.dy;
+    SetClientWindowRect(hDlg, &rc);
+}
+
 INT_PTR InputBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     InputBoxParam* p = reinterpret_cast<InputBoxParam*>(GetWindowLongPtr(hDlg, GWLP_USERDATA));;
-    UNREFERENCED_PARAMETER(lParam);
-    //_tprintf(stderr, TEXT("InputBoxDlgProc uMsg %8X \twParam %p \tlParam %p\n"), uMsg, LPCVOID(INT_PTR(wParam)), LPCVOID(INT_PTR(lParam)));
+
     switch (uMsg)
     {
     case WM_INITDIALOG:
@@ -34,10 +109,10 @@ INT_PTR InputBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (p->title) SetWindowText(hDlg, p->title);
         if (p->prompt) SetDlgItemText(hDlg, IDC_PROMPT, p->prompt);
         if (p->default) SetDlgItemText(hDlg, IDC_EDIT1, p->default);
+        FixSize(hDlg);
         return TRUE;
 
     case WM_COMMAND:
-        //_tprintf(stderr, TEXT("InputBoxDlgProc uMsg %8X \twParam %p \tlParam %p\n"), uMsg, LPCVOID(INT_PTR(wParam)), LPCVOID(INT_PTR(lParam)));
         switch (wParam)
         {
         case IDOK:
