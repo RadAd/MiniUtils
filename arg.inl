@@ -21,6 +21,7 @@ typedef struct TagArgArgNumDescription
 {
     const TCHAR*  arg;
     const TCHAR*  desc;
+    BOOL used;
 } ArgArgNumDescription;
 ArgArgNumDescription g_argargnumdescription[10];
 int g_argargnumdescriptioncount = 0;
@@ -69,6 +70,19 @@ BOOL argcleanup()
             else
             {
                 _ftprintf(stderr, _T("Unknown argument: \"%s\".\n"), arg);
+                ret = FALSE;
+            }
+        }
+    }
+
+    if (!g_argshowUsage)
+    {
+        for (int i = 0; i < g_argargnumdescriptioncount && i < g_argargnumoptional; ++i)
+        {
+            const ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[i];
+            if (!argargnumdescription->used)
+            {
+                _ftprintf(stderr, _T("Missing argument: %s \"%s\".\n"), argargnumdescription->arg, argargnumdescription->desc);
                 ret = FALSE;
             }
         }
@@ -174,6 +188,7 @@ const TCHAR* argnum(int i, const TCHAR* def ARG_OPTIONAL(NULL))
     ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount++];
     argargnumdescription->arg = _T("unknown");
     argargnumdescription->desc = NULL;
+    argargnumdescription->used = FALSE;
     for (int argi = 1; argi < g_argc && i >= 0; ++argi)
     {
         const TCHAR* arg = g_argv[argi];
@@ -183,6 +198,7 @@ const TCHAR* argnum(int i, const TCHAR* def ARG_OPTIONAL(NULL))
             if (i == 0)
             {
                 g_argb[argi] = TRUE;
+                argargnumdescription->used = TRUE;
                 return arg;
             }
         }

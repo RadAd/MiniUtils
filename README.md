@@ -67,7 +67,10 @@ Show the exe type as retrieved from [SHGetFileInfo](https://learn.microsoft.com/
 Dump a hex format of a binary file
 
 ## [Input](Input.cpp)
-Input a line from the console using [ReadConsole](https://learn.microsoft.com/en-us/windows/console/readconsole).
+Input a line of text from the console using [ReadConsole](https://learn.microsoft.com/en-us/windows/console/readconsole).
+
+## [InputBox](InputBox.cpp)
+Input text using a simple dialog box.
 
 ## [IsElevated](IsElevated.cpp)
 Determine is the process is elevated or not. It inherits this status from its parent.
