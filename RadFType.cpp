@@ -47,26 +47,20 @@ inline bool Empty(LPCTSTR s)
     return s[0] == TEXT('\0');
 }
 
-bool DisplayValue(HKEY hVerbKey, HKEY hCommandKey, LPCTSTR type)
+bool DisplayValue(LPCTSTR verb, HKEY hCommandKey, LPCTSTR type)
 {
-    TCHAR verbname[1024] = TEXT("");
-    LONG  size = ARRAYSIZE(verbname) * sizeof(TCHAR);
-    DWORD retCode = RegQueryValue(hVerbKey, nullptr, verbname, &size);
-    if (retCode != ERROR_SUCCESS)
-        WinError({retCode}).print(stderr, TEXT("RegQueryValue"));
-
     TCHAR data[1024] = TEXT("");
-    size = ARRAYSIZE(data) * sizeof(TCHAR);
-    retCode = RegQueryValue(hCommandKey, nullptr, data, &size);
+    LONG size = ARRAYSIZE(data) * sizeof(TCHAR);
+    DWORD retCode = RegQueryValue(hCommandKey, nullptr, data, &size);
     if (retCode != ERROR_SUCCESS)
         WinError({retCode}).print(stderr, TEXT("RegQueryValue"));
 
     if (!Empty(data))
     {
-        if (Empty(verbname))
+        if (Empty(verb))
             _ftprintf(stdout, TEXT("%s=%s\n"), type, data);
         else
-            _ftprintf(stdout, TEXT("%s:%s=%s\n"), type, verbname, data);
+            _ftprintf(stdout, TEXT("%s:%s=%s\n"), type, verb, data);
     }
 
     return !Empty(data);
@@ -99,7 +93,7 @@ bool ShowFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb)
         return false;
     }
 
-    const bool valid = DisplayValue(hVerbKey, hCommandKey, type);
+    const bool valid = DisplayValue(verb, hCommandKey, type);
 
     RegCloseKey(hCommandKey);
     RegCloseKey(hVerbKey);
@@ -158,7 +152,7 @@ void SetFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb, LPCTSTR value, LPCTSTR 
             WinError({retCode}).print(stderr, TEXT("RegSetValue"));
     }
 
-    DisplayValue(hVerbKey, hCommandKey, type);
+    DisplayValue(verb, hCommandKey, type);
 
     RegCloseKey(hCommandKey);
     RegCloseKey(hVerbKey);
