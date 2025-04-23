@@ -21,6 +21,24 @@ BOOL SetClientWindowRect(_In_ HWND hWnd, _In_ const RECT* prc)
     return SetWindowPos(hWnd, NULL, prc->left, prc->top, prc->right - prc->left, prc->bottom - prc->top, SWP_NOZORDER);
 }
 
+void CenterWindow(_In_ HWND hWnd)
+{
+    const HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = { sizeof(MONITORINFO) };
+    GetMonitorInfo(hMonitor, &mi);
+
+    const POINT pt = { (mi.rcWork.left + mi.rcWork.right)/2, (mi.rcWork.top + mi.rcWork.bottom)/2 };
+
+    RECT rc;
+    GetWindowRect(hWnd, &rc);
+    const POINT d = { pt.x - (rc.left + rc.right)/2, pt.y - (rc.top + rc.bottom)/2 };
+    rc.left += d.x;
+    rc.right += d.x;
+    rc.top += d.y;
+    rc.bottom += d.y;
+    SetClientWindowRect(hWnd, &rc);
+}
+
 BOOL GetClientWindowRect(_In_ HWND hWnd, _In_ RECT* prc)
 {
     HWND hParent = GetParent(hWnd);
@@ -110,6 +128,7 @@ INT_PTR InputBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (p->prompt) SetDlgItemText(hDlg, IDC_PROMPT, p->prompt);
         if (p->default) SetDlgItemText(hDlg, IDC_EDIT1, p->default);
         FixSize(hDlg);
+        CenterWindow(hDlg);
         return TRUE;
 
     case WM_COMMAND:
