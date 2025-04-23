@@ -272,7 +272,7 @@ int _tmain(const int argc, LPCTSTR argv[])
     {
         _ftprintf(stdout, TEXT("Displays or modifies file types used in file extension associations\n"));
         _ftprintf(stdout, TEXT("\n"));
-        _ftprintf(stdout, TEXT("FTYPE [/U] [/V <verb>] [fileType[=[openCommandString]]]\n"));
+        _ftprintf(stdout, TEXT("FTYPE [/U] [/V <verb>[:<name>]] [fileType[=[openCommandString]]]\n"));
         _ftprintf(stdout, TEXT("\n"));
         _ftprintf(stdout, TEXT("  /U        Set for current user only\n"));
         _ftprintf(stdout, TEXT("  /V        Verb to use (default: open)\n"));
