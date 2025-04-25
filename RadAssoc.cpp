@@ -3,6 +3,7 @@
 #include <tchar.h>
 #include <vector>
 #include <string>
+#include <memory>
 
 #ifdef _UNICODE
 #define tstring wstring
@@ -47,6 +48,35 @@ inline bool Empty(LPCTSTR s)
     return s[0] == TEXT('\0');
 }
 
+template <>
+class std::default_delete<HKEY>
+{
+public:
+    typedef HKEY pointer;
+    void operator()(HKEY k) const
+    {
+        RegCloseKey(k);
+    }
+};
+
+inline LSTATUS RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, std::unique_ptr<HKEY>* phResultKey)
+{
+    HKEY hResultKey = NULL;
+    LSTATUS retCode = RegOpenKeyEx(hKey, lpSubKey, ulOptions, samDesired, &hResultKey);
+    if (retCode == ERROR_SUCCESS)
+        phResultKey->reset(hResultKey);
+    return retCode;
+}
+
+inline LSTATUS RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, std::unique_ptr<HKEY>* phResultKey)
+{
+    HKEY hResultKey = NULL;
+    LSTATUS retCode = RegCreateKey(hKey, lpSubKey, &hResultKey);
+    if (retCode == ERROR_SUCCESS)
+        phResultKey->reset(hResultKey);
+    return retCode;
+}
+
 bool DisplayValue(HKEY hKey, LPCTSTR ext)
 {
     TCHAR data[1024] = TEXT("");
@@ -63,21 +93,19 @@ bool DisplayValue(HKEY hKey, LPCTSTR ext)
 
 bool ShowAssoc(HKEY hBaseKey, LPCTSTR ext)
 {
-    HKEY hKey = NULL;
+    std::unique_ptr<HKEY> hKey;
     DWORD retCode = RegOpenKeyEx(hBaseKey, ext, 0, KEY_READ, &hKey);
     if (retCode != ERROR_SUCCESS)
         return false;
 
-    const bool valid = DisplayValue(hKey, ext);
-
-    RegCloseKey(hKey);
+    const bool valid = DisplayValue(hKey.get(), ext);
 
     return valid;
 }
 
 void SetAssoc(HKEY hBaseKey, LPCTSTR ext, LPCTSTR value)
 {
-    HKEY hKey = NULL;
+    std::unique_ptr<HKEY> hKey;
     DWORD retCode = RegCreateKey(hBaseKey, ext, &hKey);
     if (retCode != ERROR_SUCCESS)
     {
@@ -87,21 +115,19 @@ void SetAssoc(HKEY hBaseKey, LPCTSTR ext, LPCTSTR value)
 
     if (value)
     {
-        retCode = RegSetValue(hKey, nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
+        retCode = RegSetValue(hKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
         if (retCode != ERROR_SUCCESS)
             WinError({retCode}).print(stderr, TEXT("RegSetValue"));
     }
     else
     {
         // TODO If hKey is empty then delete it instead
-        retCode = RegDeleteValue(hKey, nullptr);
+        retCode = RegDeleteValue(hKey.get(), nullptr);
         if (retCode != ERROR_SUCCESS && retCode != ERROR_FILE_NOT_FOUND)
             WinError({retCode}).print(stderr, TEXT("RegDeleteValue"));
     }
 
-    DisplayValue(hKey, ext);
-
-    RegCloseKey(hKey);
+    DisplayValue(hKey.get(), ext);
 }
 
 void EnumAssoc(HKEY hKey)
@@ -214,7 +240,7 @@ int _tmain(const int argc, LPCTSTR argv[])
         return EXIT_SUCCESS;
     }
 
-    HKEY hKey = NULL;
+    std::unique_ptr<HKEY> hKey;
     DWORD retCode = RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey);
     if (retCode != ERROR_SUCCESS)
     {
@@ -225,15 +251,13 @@ int _tmain(const int argc, LPCTSTR argv[])
     if (!ext.empty())
     {
         if (setValue)
-            SetAssoc(hKey, ext.c_str(), value.empty() ? nullptr : value.c_str());
+            SetAssoc(hKey.get(), ext.c_str(), value.empty() ? nullptr : value.c_str());
         else
-            if (!ShowAssoc(hKey, ext.c_str()))
+            if (!ShowAssoc(hKey.get(), ext.c_str()))
                 _ftprintf(stderr, TEXT("File association not found for extension %s\n"), ext.c_str());
     }
     else
-        EnumAssoc(hKey);
-
-    RegCloseKey(hKey);
+        EnumAssoc(hKey.get());
 
     return EXIT_SUCCESS;
 }

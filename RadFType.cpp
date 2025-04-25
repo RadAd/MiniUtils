@@ -3,6 +3,7 @@
 #include <tchar.h>
 #include <vector>
 #include <string>
+#include <memory>
 
 #ifdef _UNICODE
 #define tstring wstring
@@ -47,6 +48,35 @@ inline bool Empty(LPCTSTR s)
     return s[0] == TEXT('\0');
 }
 
+template <>
+class std::default_delete<HKEY>
+{
+public:
+    typedef HKEY pointer;
+    void operator()(HKEY k) const
+    {
+        RegCloseKey(k);
+    }
+};
+
+inline LSTATUS RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, std::unique_ptr<HKEY>* phResultKey)
+{
+    HKEY hResultKey = NULL;
+    LSTATUS retCode = RegOpenKeyEx(hKey, lpSubKey, ulOptions, samDesired, &hResultKey);
+    if (retCode == ERROR_SUCCESS)
+        phResultKey->reset(hResultKey);
+    return retCode;
+}
+
+inline LSTATUS RegCreateKey(HKEY hKey, LPCTSTR lpSubKey, std::unique_ptr<HKEY>* phResultKey)
+{
+    HKEY hResultKey = NULL;
+    LSTATUS retCode = RegCreateKey(hKey, lpSubKey, &hResultKey);
+    if (retCode == ERROR_SUCCESS)
+        phResultKey->reset(hResultKey);
+    return retCode;
+}
+
 bool DisplayValue(LPCTSTR verb, HKEY hCommandKey, LPCTSTR type)
 {
     TCHAR data[1024] = TEXT("");
@@ -68,43 +98,37 @@ bool DisplayValue(LPCTSTR verb, HKEY hCommandKey, LPCTSTR type)
 
 bool ShowFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb)
 {
-    HKEY hTypeKey = NULL;
+    std::unique_ptr<HKEY> hTypeKey;
     DWORD retCode = RegOpenKeyEx(hBaseKey, type, 0, KEY_READ, &hTypeKey);
     if (retCode != ERROR_SUCCESS)
         return false;
 
-    HKEY hVerbKey = NULL;
+    std::unique_ptr<HKEY> hVerbKey;
     TCHAR subkey[100];
     _stprintf_s(subkey, TEXT("shell\\%s"), verb);
-    retCode = RegOpenKeyEx(hTypeKey, subkey, 0, KEY_READ, &hVerbKey);
+    retCode = RegOpenKeyEx(hTypeKey.get(), subkey, 0, KEY_READ, &hVerbKey);
     if (retCode != ERROR_SUCCESS)
     {
         //WinError({retCode}).print(stderr, TEXT("RegOpenKeyEx"));
-        RegCloseKey(hTypeKey);
         return false;
     }
 
-    HKEY hCommandKey = NULL;
-    retCode = RegOpenKeyEx(hVerbKey, TEXT("command"), 0, KEY_READ, &hCommandKey);
+    std::unique_ptr<HKEY> hCommandKey;
+    retCode = RegOpenKeyEx(hVerbKey.get(), TEXT("command"), 0, KEY_READ, &hCommandKey);
     if (retCode != ERROR_SUCCESS)
     {
         //WinError({retCode}).print(stderr, TEXT("RegOpenKeyEx"));
-        RegCloseKey(hTypeKey);
         return false;
     }
 
-    const bool valid = DisplayValue(verb, hCommandKey, type);
-
-    RegCloseKey(hCommandKey);
-    RegCloseKey(hVerbKey);
-    RegCloseKey(hTypeKey);
+    const bool valid = DisplayValue(verb, hCommandKey.get(), type);
 
     return valid;
 }
 
 void SetFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb, LPCTSTR value, LPCTSTR name)
 {
-    HKEY hTypeKey = NULL;
+    std::unique_ptr<HKEY> hTypeKey;
     DWORD retCode = RegCreateKey(hBaseKey, type, &hTypeKey);
     if (retCode != ERROR_SUCCESS)
     {
@@ -112,51 +136,45 @@ void SetFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb, LPCTSTR value, LPCTSTR 
         return;
     }
 
-    HKEY hVerbKey = NULL;
+    std::unique_ptr<HKEY> hVerbKey;
     TCHAR subkey[100];
     _stprintf_s(subkey, TEXT("shell\\%s"), verb);
-    retCode = RegCreateKey(hTypeKey, subkey, &hVerbKey);
+    retCode = RegCreateKey(hTypeKey.get(), subkey, &hVerbKey);
     if (retCode != ERROR_SUCCESS)
     {
         WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        RegCloseKey(hTypeKey);
         return;
     }
 
-    HKEY hCommandKey = NULL;
-    retCode = RegCreateKey(hVerbKey, TEXT("command"), &hCommandKey);
+    std::unique_ptr<HKEY> hCommandKey;
+    retCode = RegCreateKey(hVerbKey.get(), TEXT("command"), &hCommandKey);
     if (retCode != ERROR_SUCCESS)
     {
         WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        RegCloseKey(hTypeKey);
         return;
     }
 
     if (value)
     {
-        retCode = RegSetValue(hCommandKey, nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
+        retCode = RegSetValue(hCommandKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
         if (retCode != ERROR_SUCCESS)
             WinError({retCode}).print(stderr, TEXT("RegSetValue"));
     }
     else
     {
-        retCode = RegDeleteValue(hCommandKey, nullptr);
+        retCode = RegDeleteValue(hCommandKey.get(), nullptr);
         if (retCode != ERROR_SUCCESS && retCode != ERROR_FILE_NOT_FOUND)
             WinError({retCode}).print(stderr, TEXT("RegDeleteValue"));
     }
 
     if (name)
     {
-        retCode = RegSetValue(hVerbKey, nullptr, REG_SZ, name, (lstrlen(name) + 1) * sizeof(TCHAR));
+        retCode = RegSetValue(hVerbKey.get(), nullptr, REG_SZ, name, (lstrlen(name) + 1) * sizeof(TCHAR));
         if (retCode != ERROR_SUCCESS)
             WinError({retCode}).print(stderr, TEXT("RegSetValue"));
     }
 
-    DisplayValue(verb, hCommandKey, type);
-
-    RegCloseKey(hCommandKey);
-    RegCloseKey(hVerbKey);
-    RegCloseKey(hTypeKey);
+    DisplayValue(verb, hCommandKey.get(), type);
 }
 
 void EnumFtype(HKEY hKey, LPCTSTR type)
@@ -283,7 +301,7 @@ int _tmain(const int argc, LPCTSTR argv[])
         return EXIT_SUCCESS;
     }
 
-    HKEY hKey = NULL;
+    std::unique_ptr<HKEY> hKey;
     DWORD retCode = RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey);
     if (retCode != ERROR_SUCCESS)
     {
@@ -294,15 +312,13 @@ int _tmain(const int argc, LPCTSTR argv[])
     if (!type.empty())
     {
         if (setValue)
-            SetFtype(hKey, type.c_str(), verb.c_str(), value.empty() ? nullptr : value.c_str(), name.empty() ? nullptr : name.c_str());
+            SetFtype(hKey.get(), type.c_str(), verb.c_str(), value.empty() ? nullptr : value.c_str(), name.empty() ? nullptr : name.c_str());
         else
-            if (!ShowFtype(hKey, type.c_str(), verb.c_str()))
+            if (!ShowFtype(hKey.get(), type.c_str(), verb.c_str()))
                 _ftprintf(stderr, TEXT("File type '%s' not found or no %s command associated with it.\n"), type.c_str(), verb.c_str());
     }
     else
-        EnumFtype(hKey, verb.c_str());
-
-    RegCloseKey(hKey);
+        EnumFtype(hKey.get(), verb.c_str());
 
     return EXIT_SUCCESS;
 }
