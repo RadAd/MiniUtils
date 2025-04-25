@@ -59,6 +59,22 @@ public:
     }
 };
 
+bool Check(LSTATUS retCode, LPCTSTR msg)
+{
+    if (retCode != ERROR_SUCCESS)
+    {
+        if (msg)
+            WinError({DWORD(retCode)}).print(stderr, msg);
+        return false;
+    }
+        return true;
+}
+
+#define CHECK(x) Check(x, TEXT(#x))
+#define CHECK_RET(x, r) if (!Check(x, TEXT(#x))) return r
+#define CHECK_MSG_RET(x, m, r) if (!Check(x, m)) return r
+#define CHECK_CONT(x) if (!Check(x, TEXT(#x))) continue
+
 inline LSTATUS RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, std::unique_ptr<HKEY>* phResultKey)
 {
     HKEY hResultKey = NULL;
@@ -81,9 +97,7 @@ bool DisplayValue(LPCTSTR verb, HKEY hCommandKey, LPCTSTR type)
 {
     TCHAR data[1024] = TEXT("");
     LONG size = ARRAYSIZE(data) * sizeof(TCHAR);
-    DWORD retCode = RegQueryValue(hCommandKey, nullptr, data, &size);
-    if (retCode != ERROR_SUCCESS)
-        WinError({retCode}).print(stderr, TEXT("RegQueryValue"));
+    CHECK(RegQueryValue(hCommandKey, nullptr, data, &size));
 
     if (!Empty(data))
     {
@@ -99,27 +113,15 @@ bool DisplayValue(LPCTSTR verb, HKEY hCommandKey, LPCTSTR type)
 bool ShowFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb)
 {
     std::unique_ptr<HKEY> hTypeKey;
-    DWORD retCode = RegOpenKeyEx(hBaseKey, type, 0, KEY_READ, &hTypeKey);
-    if (retCode != ERROR_SUCCESS)
-        return false;
+    CHECK_MSG_RET(RegOpenKeyEx(hBaseKey, type, 0, KEY_READ, &hTypeKey), nullptr, false);
 
     std::unique_ptr<HKEY> hVerbKey;
     TCHAR subkey[100];
     _stprintf_s(subkey, TEXT("shell\\%s"), verb);
-    retCode = RegOpenKeyEx(hTypeKey.get(), subkey, 0, KEY_READ, &hVerbKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        //WinError({retCode}).print(stderr, TEXT("RegOpenKeyEx"));
-        return false;
-    }
+    CHECK_MSG_RET(RegOpenKeyEx(hTypeKey.get(), subkey, 0, KEY_READ, &hVerbKey), nullptr, false);
 
     std::unique_ptr<HKEY> hCommandKey;
-    retCode = RegOpenKeyEx(hVerbKey.get(), TEXT("command"), 0, KEY_READ, &hCommandKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        //WinError({retCode}).print(stderr, TEXT("RegOpenKeyEx"));
-        return false;
-    }
+    CHECK_MSG_RET(RegOpenKeyEx(hVerbKey.get(), TEXT("command"), 0, KEY_READ, &hCommandKey), nullptr, false);
 
     const bool valid = DisplayValue(verb, hCommandKey.get(), type);
 
@@ -129,49 +131,28 @@ bool ShowFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb)
 void SetFtype(HKEY hBaseKey, LPCTSTR type, LPCTSTR verb, LPCTSTR value, LPCTSTR name)
 {
     std::unique_ptr<HKEY> hTypeKey;
-    DWORD retCode = RegCreateKey(hBaseKey, type, &hTypeKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        return;
-    }
+    CHECK_RET(RegCreateKey(hBaseKey, type, &hTypeKey), ;);
 
     std::unique_ptr<HKEY> hVerbKey;
     TCHAR subkey[100];
     _stprintf_s(subkey, TEXT("shell\\%s"), verb);
-    retCode = RegCreateKey(hTypeKey.get(), subkey, &hVerbKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        return;
-    }
+    CHECK_RET(RegCreateKey(hTypeKey.get(), subkey, &hVerbKey), ;);
 
     std::unique_ptr<HKEY> hCommandKey;
-    retCode = RegCreateKey(hVerbKey.get(), TEXT("command"), &hCommandKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        return;
-    }
+    CHECK_RET(RegCreateKey(hVerbKey.get(), TEXT("command"), &hCommandKey), ;);
 
     if (value)
     {
-        retCode = RegSetValue(hCommandKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
-        if (retCode != ERROR_SUCCESS)
-            WinError({retCode}).print(stderr, TEXT("RegSetValue"));
+        CHECK(RegSetValue(hCommandKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR)));
     }
     else
     {
-        retCode = RegDeleteValue(hCommandKey.get(), nullptr);
-        if (retCode != ERROR_SUCCESS && retCode != ERROR_FILE_NOT_FOUND)
-            WinError({retCode}).print(stderr, TEXT("RegDeleteValue"));
+        CHECK(RegDeleteValue(hCommandKey.get(), nullptr));
     }
 
     if (name)
     {
-        retCode = RegSetValue(hVerbKey.get(), nullptr, REG_SZ, name, (lstrlen(name) + 1) * sizeof(TCHAR));
-        if (retCode != ERROR_SUCCESS)
-            WinError({retCode}).print(stderr, TEXT("RegSetValue"));
+        CHECK(RegSetValue(hVerbKey.get(), nullptr, REG_SZ, name, (lstrlen(name) + 1) * sizeof(TCHAR)));
     }
 
     DisplayValue(verb, hCommandKey.get(), type);
@@ -191,7 +172,7 @@ void EnumFtype(HKEY hKey, LPCTSTR type)
     FILETIME ftLastWriteTime;      // last write time
 
     // Get the class name and the value count.
-    DWORD retCode = RegQueryInfoKey(
+    CHECK_RET(RegQueryInfoKey(
         hKey,                    // key handle
         achClass,                // buffer for class name
         &cchClassName,           // size of class string
@@ -203,32 +184,21 @@ void EnumFtype(HKEY hKey, LPCTSTR type)
         &cchMaxValue,            // longest value name
         &cbMaxValueData,         // longest value data
         &cbSecurityDescriptor,   // security descriptor
-        &ftLastWriteTime);       // last write time
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegQueryInfoKey"));
-        return ;
-    }
+        &ftLastWriteTime),       // last write time
+        ;);
 
     std::vector<TCHAR> achKey(cbMaxSubKey + 1);
 
     for (DWORD i = 0; i < cSubKeys; ++i)
     {
         DWORD cbName = static_cast<DWORD>(achKey.size());
-        retCode = RegEnumKeyEx(hKey, i,
+        CHECK_CONT(RegEnumKeyEx(hKey, i,
             achKey.data(),
             &cbName,
             NULL,
             NULL,
             NULL,
-            &ftLastWriteTime);
-
-        if (retCode != ERROR_SUCCESS)
-        {
-            _ftprintf(stderr, TEXT("Error enumerating key %d\n"), i);
-            WinError({retCode}).print(stderr, TEXT("RegEnumKeyEx"));
-            continue;
-        }
+            &ftLastWriteTime));
 
         if (!achKey.empty())
             ShowFtype(hKey, achKey.data(), type);
@@ -302,12 +272,7 @@ int _tmain(const int argc, LPCTSTR argv[])
     }
 
     std::unique_ptr<HKEY> hKey;
-    DWORD retCode = RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        _ftprintf(stderr, TEXT("Error opening key %s 0x%08X\n"), strSubKey, retCode);
-        return EXIT_FAILURE;
-    }
+    CHECK_RET(RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey), EXIT_FAILURE);
 
     if (!type.empty())
     {

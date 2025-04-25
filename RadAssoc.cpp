@@ -59,6 +59,22 @@ public:
     }
 };
 
+bool Check(LSTATUS retCode, LPCTSTR msg)
+{
+    if (retCode != ERROR_SUCCESS)
+    {
+        if (msg)
+            WinError({DWORD(retCode)}).print(stderr, msg);
+        return false;
+    }
+        return true;
+}
+
+#define CHECK(x) Check(x, TEXT(#x))
+#define CHECK_RET(x, r) if (!Check(x, TEXT(#x))) return r
+#define CHECK_MSG_RET(x, m, r) if (!Check(x, m)) return r
+#define CHECK_CONT(x) if (!Check(x, TEXT(#x))) continue
+
 inline LSTATUS RegOpenKeyEx(HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, std::unique_ptr<HKEY>* phResultKey)
 {
     HKEY hResultKey = NULL;
@@ -81,9 +97,7 @@ bool DisplayValue(HKEY hKey, LPCTSTR ext)
 {
     TCHAR data[1024] = TEXT("");
     LONG  size = ARRAYSIZE(data) * sizeof(TCHAR);
-    DWORD retCode = RegQueryValue(hKey, nullptr, data, &size);
-    if (retCode != ERROR_SUCCESS)
-        WinError({retCode}).print(stderr, TEXT("RegQueryValue"));
+    CHECK(RegQueryValue(hKey, nullptr, data, &size));
 
     if (!Empty(data))
         _ftprintf(stdout, TEXT("%s=%s\n"), ext, data);
@@ -94,9 +108,7 @@ bool DisplayValue(HKEY hKey, LPCTSTR ext)
 bool ShowAssoc(HKEY hBaseKey, LPCTSTR ext)
 {
     std::unique_ptr<HKEY> hKey;
-    DWORD retCode = RegOpenKeyEx(hBaseKey, ext, 0, KEY_READ, &hKey);
-    if (retCode != ERROR_SUCCESS)
-        return false;
+    CHECK_MSG_RET(RegOpenKeyEx(hBaseKey, ext, 0, KEY_READ, &hKey), nullptr, false);
 
     const bool valid = DisplayValue(hKey.get(), ext);
 
@@ -106,25 +118,16 @@ bool ShowAssoc(HKEY hBaseKey, LPCTSTR ext)
 void SetAssoc(HKEY hBaseKey, LPCTSTR ext, LPCTSTR value)
 {
     std::unique_ptr<HKEY> hKey;
-    DWORD retCode = RegCreateKey(hBaseKey, ext, &hKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegCreateKey"));
-        return;
-    }
+    CHECK_RET(RegCreateKey(hBaseKey, ext, &hKey), ;);
 
     if (value)
     {
-        retCode = RegSetValue(hKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR));
-        if (retCode != ERROR_SUCCESS)
-            WinError({retCode}).print(stderr, TEXT("RegSetValue"));
+        CHECK(RegSetValue(hKey.get(), nullptr, REG_SZ, value, (lstrlen(value) + 1) * sizeof(TCHAR)));
     }
     else
     {
         // TODO If hKey is empty then delete it instead
-        retCode = RegDeleteValue(hKey.get(), nullptr);
-        if (retCode != ERROR_SUCCESS && retCode != ERROR_FILE_NOT_FOUND)
-            WinError({retCode}).print(stderr, TEXT("RegDeleteValue"));
+        CHECK(RegDeleteValue(hKey.get(), nullptr));
     }
 
     DisplayValue(hKey.get(), ext);
@@ -144,7 +147,7 @@ void EnumAssoc(HKEY hKey)
     FILETIME ftLastWriteTime;      // last write time
 
     // Get the class name and the value count.
-    DWORD retCode = RegQueryInfoKey(
+    CHECK_RET(RegQueryInfoKey(
         hKey,                    // key handle
         achClass,                // buffer for class name
         &cchClassName,           // size of class string
@@ -156,32 +159,21 @@ void EnumAssoc(HKEY hKey)
         &cchMaxValue,            // longest value name
         &cbMaxValueData,         // longest value data
         &cbSecurityDescriptor,   // security descriptor
-        &ftLastWriteTime);       // last write time
-    if (retCode != ERROR_SUCCESS)
-    {
-        WinError({retCode}).print(stderr, TEXT("RegQueryInfoKey"));
-        return ;
-    }
+        &ftLastWriteTime),        // last write time
+        ;);
 
     std::vector<TCHAR> achKey(cbMaxSubKey + 1);
 
     for (DWORD i = 0; i < cSubKeys; ++i)
     {
         DWORD cbName = static_cast<DWORD>(achKey.size());
-        retCode = RegEnumKeyEx(hKey, i,
+        CHECK_CONT(RegEnumKeyEx(hKey, i,
             achKey.data(),
             &cbName,
             NULL,
             NULL,
             NULL,
-            &ftLastWriteTime);
-
-        if (retCode != ERROR_SUCCESS)
-        {
-            _ftprintf(stderr, TEXT("Error enumerating key %d\n"), i);
-            WinError({retCode}).print(stderr, TEXT("RegEnumKeyEx"));
-            continue;
-        }
+            &ftLastWriteTime));
 
         if (!achKey.empty() && achKey[0] == TEXT('.'))
             ShowAssoc(hKey, achKey.data());
@@ -241,12 +233,7 @@ int _tmain(const int argc, LPCTSTR argv[])
     }
 
     std::unique_ptr<HKEY> hKey;
-    DWORD retCode = RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        _ftprintf(stderr, TEXT("Error opening key %s 0x%08X\n"), strSubKey, retCode);
-        return EXIT_FAILURE;
-    }
+    CHECK_RET(RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey), EXIT_FAILURE);
 
     if (!ext.empty())
     {
