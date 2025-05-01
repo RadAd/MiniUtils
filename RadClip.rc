@@ -1,0 +1,4 @@
+#define _PRODUCT_NAME "Rad Clip"
+#define _FILE_DESCRIPTION "Output clipboard contents to stdout"
+
+#include "Version.rc"
