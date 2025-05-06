@@ -71,9 +71,12 @@ int _tmain(int argc, TCHAR const* const* const argv)
                     pchData = pchNext + 1;
                 }
                 wprintf(pchData);
-                size_t len = wcslen(pchData);
-                if (len > 0 && pchData[len - 1] != L'\n')
-                    wprintf(L"\n");
+                if (_isatty(_fileno(stdout)))
+                {
+                    size_t len = wcslen(pchData);
+                    if (len > 0 && pchData[len - 1] != L'\n')
+                        wprintf(L"\n");
+                }
 #else
                 wchar_t bom = 0xFFFE;
                 fwrite(&bom, sizeof(wchar_t), 1, stdout);
