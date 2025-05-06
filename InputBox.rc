@@ -14,3 +14,8 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,118,59,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,173,59,50,14
 END
+
+#define _PRODUCT_NAME "Input Box"
+#define _FILE_DESCRIPTION "Display an edit dialog and output to stdout"
+
+#include "Version.rc"

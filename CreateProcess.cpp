@@ -4,6 +4,7 @@
 #include <tchar.h>
 #include <assert.h>
 #include <algorithm>
+#include <string>
 #include <string_view>
 #include <cctype>
 #include <cwctype>
