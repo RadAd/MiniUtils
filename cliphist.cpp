@@ -7,6 +7,8 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <cstring>
 #include <string>
+#include <tchar.h>
+#include "arg.inl"
 
 namespace winrt
 {
@@ -99,17 +101,33 @@ int wmain(const int argc, const wchar_t* argv[])
         return 1;
     }
 
-    if (argc <= 1)
+    arginit(argc, argv, L"Show and select clipboard history");
+
+    argoptional();
+    const TCHAR* cmd = argnumdesc(1, nullptr, L"command", L"Command option: list, view or select");
+    const TCHAR* item = argnumdesc(2, nullptr, L"clip_id", L"Clip item target");
+
+    if (!argcleanup())
+        return EXIT_FAILURE;
+    if (argusage())
+        return EXIT_SUCCESS;
+
+    if (cmd == nullptr || _wcsicmp(cmd, L"list") == 0)
         DumpClipboardHistoryAsync().get();
-    else if (_wcsicmp(argv[1], L"view") == 0)
-        DumpClipboardHistoryItemAsync(argv[2]).get();
-    else if (_wcsicmp(argv[1], L"select") == 0)
-        SelectClipboardHistoryItemAsync(argv[2]).get();
+    else if (item == nullptr)
+    {
+        fwprintf(stderr, L"Error: Clip id missing\n");
+        return EXIT_FAILURE;
+    }
+    else if (_wcsicmp(cmd, L"view") == 0)
+        DumpClipboardHistoryItemAsync(item).get();
+    else if (_wcsicmp(cmd, L"select") == 0)
+        SelectClipboardHistoryItemAsync(item).get();
     else
     {
-        fwprintf(stderr, L"Unknown option.\n");
-        return 1;
+        fwprintf(stderr, L"Error: Unknown command: %s\n", cmd);
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
