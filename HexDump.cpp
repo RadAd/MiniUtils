@@ -26,12 +26,10 @@ int _tmain(int argc, const TCHAR* argv[])
     if (argswitch(_T("/nocolor")))
         color = false;
     bool squeeze = !argswitchdesc(_T("/nosqueeze"), _T("Do not skip over like lines"));
-    const TCHAR* filename = argnumdesc(1, nullptr, _T("filename"), nullptr);
+    argoptional();
+    const TCHAR* filename = argnumdesc(1, nullptr, _T("filename"), _isatty(_fileno(stdin)) ? nullptr : _T("-"));
 	if (!argcleanup())
         return EXIT_FAILURE;
-
-    if (filename == nullptr && !_isatty(_fileno(stdin)))
-        filename = _T("-");
 
     if (argusage(filename == nullptr))
         return EXIT_SUCCESS;
