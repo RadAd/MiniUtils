@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <tchar.h>
+#include <fcntl.h>
+#include <io.h>
 
 #define BOOL int
 #define TRUE 1
@@ -96,7 +98,10 @@ int _tmain(int argc, const TCHAR* const argv[])
 
     if (o.size == 0)
         appendFileList(&o, stdout);
-    
+
+    _setmode(_fileno(stdin), O_BINARY);
+    _setmode(_fileno(stdout), O_BINARY);
+        
     if (unicode)
     {
         wint_t c;
