@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <string>
 
-int _tmain(int argc, const TCHAR* const argv[])
+int _tmain(int /*argc*/, const TCHAR* const argv[])
 {
     DWORD dwError = std::stoul(argv[1], nullptr, 0);
     const TCHAR* szModule = nullptr;

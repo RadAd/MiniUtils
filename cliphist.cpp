@@ -104,8 +104,8 @@ int wmain(const int argc, const wchar_t* argv[])
     arginit(argc, argv, L"Show and select clipboard history");
 
     argoptional();
-    const TCHAR* cmd = argnumdesc(1, nullptr, L"command", L"Command option: list, view or select");
-    const TCHAR* item = argnumdesc(2, nullptr, L"clip_id", L"Clip item target");
+    const TCHAR* cmd = argnum(1, nullptr, L"command", L"Command option: list, view or select");
+    const TCHAR* item = argnum(2, nullptr, L"clip_id", L"Clip item target");
 
     if (!argcleanup())
         return EXIT_FAILURE;

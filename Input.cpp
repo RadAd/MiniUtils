@@ -76,9 +76,9 @@ int _tmain(int argc, const TCHAR* const argv[])
     TCHAR Buffer[1024] = _T("");
 
     arginit(argc, argv);
-    const TCHAR* prompt = argnumdesc(1, _T("? "), _T("prompt"), nullptr);
+    const TCHAR* prompt = argnum(1, _T("? "), _T("prompt"), nullptr);
     // TODO Expand prompt with cmd-like prompt extensions
-    StrCopyIf(Buffer, argvaluedesc(_T("/Default"), nullptr, _T("initial_value"), nullptr));
+    StrCopyIf(Buffer, argvalue(_T("/Default"), nullptr, _T("initial_value"), nullptr));
     // TODO Get default value from hInput
     if (!argcleanup())
         return EXIT_FAILURE;

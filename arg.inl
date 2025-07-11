@@ -42,7 +42,7 @@ int g_argargnumoptional = 65536;
 #define ARG_ERROR(s) ARG_COLOR(31, s)
 #endif
 
-bool argswitchdesc(const TCHAR* argf, const TCHAR* desc);
+bool argswitch(const TCHAR* argf, const TCHAR* desc);
 
 void arginit(int argc, const TCHAR* const argv[], const TCHAR* argdescription ARG_OPTIONAL(NULL))
 {
@@ -73,7 +73,7 @@ bool argcleanup()
 #define msg(...) _ftprintf(stderr, __VA_ARGS__)
 #endif
 
-    g_argshowUsage = argswitchdesc(_T("/?"), _T("Show usage"));
+    g_argshowUsage = argswitch(_T("/?"), _T("Show usage"));
     bool ret = true;
 
     for (int argi = 1; argi < g_argc; ++argi)
@@ -177,12 +177,12 @@ bool argusage(bool bforce ARG_OPTIONAL(false))
     return true;
 }
 
-bool argswitch(const TCHAR* argf)
+bool argswitch(const TCHAR* argf, const TCHAR* desc)
 {
     ArgArgDescription* argargdescription = &g_argargdescription[g_argargdescriptioncount++];
     argargdescription->arg = argf;
     argargdescription->value = NULL;
-    argargdescription->desc = NULL;
+    argargdescription->desc = desc;
     for (int argi = 1; argi < g_argc; ++argi)
     {
         const TCHAR* arg = g_argv[argi];
@@ -195,12 +195,12 @@ bool argswitch(const TCHAR* argf)
     return false;
 }
 
-const TCHAR* argvalue(const TCHAR* argf, const TCHAR* def ARG_OPTIONAL(NULL))
+const TCHAR* argvalue(const TCHAR* argf, const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
 {
     ArgArgDescription* argargdescription = &g_argargdescription[g_argargdescriptioncount++];
     argargdescription->arg = argf;
-    argargdescription->value = _T("<unknown>");
-    argargdescription->desc = NULL;
+    argargdescription->value = descvalue;
+    argargdescription->desc = desc;
     const size_t len = _tcslen(argf);
     for (int argi = 1; argi < g_argc; ++argi)
     {
@@ -214,11 +214,11 @@ const TCHAR* argvalue(const TCHAR* argf, const TCHAR* def ARG_OPTIONAL(NULL))
     return def;
 }
 
-const TCHAR* argnum(int i, const TCHAR* def ARG_OPTIONAL(NULL))
+const TCHAR* argnum(int i, const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
 {
     ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount++];
-    argargnumdescription->arg = _T("unknown");
-    argargnumdescription->desc = NULL;
+    argargnumdescription->arg = descvalue;
+    argargnumdescription->desc = desc;
     argargnumdescription->used = false;
     for (int argi = 1; argi < g_argc && i >= 0; ++argi)
     {
@@ -241,32 +241,6 @@ const TCHAR* argnum(int i, const TCHAR* def ARG_OPTIONAL(NULL))
         _ftprintf(stderr, _T(ARG_ERROR("Error argument number") "\n"));
 #endif
     return def;
-}
-
-bool argswitchdesc(const TCHAR* argf, const TCHAR* desc)
-{
-    ArgArgDescription* argargdescription = &g_argargdescription[g_argargdescriptioncount];
-    bool ret = argswitch(argf);
-    argargdescription->desc = desc;
-    return ret;
-}
-
-const TCHAR* argvaluedesc(const TCHAR* argf, const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
-{
-    ArgArgDescription* argargdescription = &g_argargdescription[g_argargdescriptioncount];
-    const TCHAR* ret = argvalue(argf, def);
-    if (descvalue != NULL) argargdescription->value = descvalue;
-    argargdescription->desc = desc;
-    return ret;
-}
-
-const TCHAR* argnumdesc(int i, const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
-{
-    ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount];
-    const TCHAR* ret = argnum(i, def);
-    if (descvalue != NULL) argargnumdescription->arg = descvalue;
-    argargnumdescription->desc = desc;
-    return ret;
 }
 
 void argoptional()

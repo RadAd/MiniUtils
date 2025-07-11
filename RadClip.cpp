@@ -14,8 +14,8 @@ int _tmain(int argc, TCHAR const* const* const argv)
 {
     arginit(argc, argv, _T("Output clipboard contents to stdout"));
 
-    const int mode = argswitchdesc(_T("/U"), _T("Output in unicode")) ? _O_U16TEXT : _O_U8TEXT;
-    int format = _ttoi(argvaluedesc(_T("/F"), _T("0"), _T("<format>"), _T("Clipboard format")));
+    const int mode = argswitch(_T("/U"), _T("Output in unicode")) ? _O_U16TEXT : _O_U8TEXT;
+    int format = _ttoi(argvalue(_T("/F"), _T("0"), _T("<format>"), _T("Clipboard format")));
 
     if (!argcleanup())
         return 2;

@@ -27,7 +27,7 @@ inline int StrLen(const PUNICODE_STRING s)
 int _tmain(int argc, TCHAR *argv[])
 {
     arginit(argc, argv, _T("Show command line for a process"));
-    const int pid = _tstoi(argnumdesc(1, _T("0"), _T("pid"), _T("Process id")));
+    const int pid = _tstoi(argnum(1, _T("0"), _T("pid"), _T("Process id")));
 	if (!argcleanup())
         return EXIT_FAILURE;
 	if (argusage(pid == 0))

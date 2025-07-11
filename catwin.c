@@ -27,7 +27,7 @@ void Process(HANDLE hInput, HANDLE hOutput)
 
 HANDLE argfile(int i, const TCHAR* descvalue, const TCHAR* desc)
 {
-    const TCHAR* name = argnumdesc(i, NULL, descvalue, desc);
+    const TCHAR* name = argnum(i, NULL, descvalue, desc);
     if (name == NULL)
         return NULL;
     else if (_tcscmp(name, _T("-")) == 0)

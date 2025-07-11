@@ -29,8 +29,8 @@ void Process(HANDLE hInput, HANDLE hOutput)
 int _tmain(int argc, const TCHAR* const argv[])
 {
 	arginit(argc, argv, _T("Create a named pipe and wait for a connection"));
-	BOOL bInput = argswitchdesc(TEXT("/I"), _T("Input mode. Copy stdin to client. Default is Output mode. Copy client to stdout."));
-	const TCHAR* pipe = argnumdesc(1, nullptr, _T("name"), _T("The name of the pipe"));
+	BOOL bInput = argswitch(TEXT("/I"), _T("Input mode. Copy stdin to client. Default is Output mode. Copy client to stdout."));
+	const TCHAR* pipe = argnum(1, nullptr, _T("name"), _T("The name of the pipe"));
 	if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage(pipe == nullptr))

@@ -744,11 +744,11 @@ const TCHAR* GetMsgName(UINT u)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    HWND hWnd = GetWindow(argnumdesc(1, nullptr, _T("hwnd"), nullptr));
-    UINT uMsg = GetMsg(argnumdesc(2, nullptr, _T("msg"), nullptr));
+    HWND hWnd = GetWindow(argnum(1, nullptr, _T("hwnd"), nullptr));
+    UINT uMsg = GetMsg(argnum(2, nullptr, _T("msg"), nullptr));
     argoptional();
-    WPARAM wParam = ConvertToULong(argnumdesc(3, nullptr, _T("wparam"), nullptr), 0);
-    LPARAM lParam = ConvertToULong(argnumdesc(4, nullptr, _T("lparam"), nullptr), 0);
+    WPARAM wParam = ConvertToULong(argnum(3, nullptr, _T("wparam"), nullptr), 0);
+    LPARAM lParam = ConvertToULong(argnum(4, nullptr, _T("lparam"), nullptr), 0);
 	if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage(hWnd == NULL))

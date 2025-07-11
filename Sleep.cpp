@@ -6,7 +6,7 @@
 int _tmain(int argc, const TCHAR* argv[])
 {
     arginit(argc, argv);
-    const DWORD sleep_ms = _ttoi(argnumdesc(1, _T("0"), _T("time"), _T("Time in milliseconds"))) * 1000;
+    const DWORD sleep_ms = _ttoi(argnum(1, _T("0"), _T("time"), _T("Time in milliseconds"))) * 1000;
 	if (!argcleanup())
         return EXIT_FAILURE;
 	if (argusage(sleep_ms == 0))

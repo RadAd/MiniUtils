@@ -16,7 +16,7 @@
 
 FILE* argfile(int i, FILE* def, const TCHAR* mode, const TCHAR* descvalue, const TCHAR* desc)
 {
-    const TCHAR* name = argnumdesc(i, NULL, descvalue, desc);
+    const TCHAR* name = argnum(i, NULL, descvalue, desc);
     if (name == NULL)
         return NULL;
     else if (strcmp(name, "-") == 0)
@@ -84,7 +84,7 @@ BOOL fileListErr(const FileList* fl)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv, _T("Read and output a file to stdout"));
-    BOOL unicode = argswitchdesc(_T("/U"), _T("Use unicode mode"));
+    BOOL unicode = argswitch(_T("/U"), _T("Use unicode mode"));
     FILE* i = argfile(1, stdin, _T("rb"), _T("input"), _T("The file to read ('-' for stdin, 'CONIN$' for console)"));   // TODO Should be a mandatory option
     argoptional();
     FileList o = argfilelist(2, stdout, _T("wb"), _T("output..."), _T("The file(s) to write ('-' for stdout, 'CONOUT$' for console)")); // TODO Should be an optional option (with many)

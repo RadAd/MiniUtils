@@ -185,10 +185,10 @@ void PrintTree(DWORD processID, const TCHAR* pre, const ProcessInfo* processinfo
 int main(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv, _T("Display a list of currently running processes"));
-    const bool showAll = argswitchdesc(_T("/a"), _T("Show all processes"));
-    const bool showTree = argswitchdesc(_T("/t"), _T("Show as a tree"));
+    const bool showAll = argswitch(_T("/a"), _T("Show all processes"));
+    const bool showTree = argswitch(_T("/t"), _T("Show as a tree"));
     argoptional();
-    LPCTSTR lpFilter = argnumdesc(1, nullptr, _T("filter"), _T("Glob filter on process name"));
+    LPCTSTR lpFilter = argnum(1, nullptr, _T("filter"), _T("Glob filter on process name"));
     if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage())

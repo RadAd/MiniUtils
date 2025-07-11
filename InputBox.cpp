@@ -163,9 +163,9 @@ int WINAPI tWinMain(/*[in]*/ HINSTANCE hInstance, /*[in, optional]*/ HINSTANCE h
 
     InputBoxParam p = {};
     arginit(__argc, __wargv);
-    p.title = argvaluedesc(_T("/Title"), nullptr, _T("title"), _T("Dialog title"));
-    p.prompt = argnumdesc(1, nullptr, _T("prompt"), _T("Dialog prompt"));
-    p.default = argvaluedesc(_T("/Default"), nullptr, _T("initial_value"), _T("Input initial value"));
+    p.title = argvalue(_T("/Title"), nullptr, _T("title"), _T("Dialog title"));
+    p.prompt = argnum(1, nullptr, _T("prompt"), _T("Dialog prompt"));
+    p.default = argvalue(_T("/Default"), nullptr, _T("initial_value"), _T("Input initial value"));
     if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage())

@@ -36,7 +36,7 @@ LPCTSTR VirtualKeyCodeToString(const WORD virtualKey, bool extended)
     {
         const UINT scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC) | (extended ? KF_EXTENDED : 0);
         static TCHAR szName[128];
-        const int result = GetKeyNameText(scanCode << 16, szName, ARRAYSIZE(szName));
+        GetKeyNameText(scanCode << 16, szName, ARRAYSIZE(szName));
         return szName;
     }
     };

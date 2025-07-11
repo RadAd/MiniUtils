@@ -20,10 +20,10 @@ BOOL CALLBACK FindWindowPlusEnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
         TCHAR strClassName[MAX_PATH];
         if (!GetClassName(hWnd, strClassName, ARRAYSIZE(strClassName)))
             return TRUE;
-        
+
         if (!PathMatchSpec(strClassName, data->lpClassName))
             return TRUE;
-            
+
         //_tprintf(_T("Class: %s\n"), strClassName);
     }
     if (data->lpWindowName != nullptr)
@@ -31,13 +31,13 @@ BOOL CALLBACK FindWindowPlusEnumWindowsProc(_In_ HWND hWnd, _In_ LPARAM lParam)
         TCHAR strWindowName[MAX_PATH];
         if (!GetWindowText(hWnd, strWindowName, ARRAYSIZE(strWindowName)))
             return TRUE;
-        
+
         if (!PathMatchSpec(strWindowName, data->lpWindowName))
             return TRUE;
-            
+
         //_tprintf(_T("Title: %s\n"), strWindowName);
     }
-    
+
     data->hWnd = hWnd;
     _tprintf(_T("HWND: 0x%08X\n"), HandleToUlong(hWnd));
     return TRUE;
@@ -53,8 +53,8 @@ HWND FindWindowPlus(LPCTSTR lpClassName, LPCTSTR lpWindowName)
 int _tmain(int argc, const TCHAR* const argv[])
 {
     arginit(argc, argv);
-    LPCTSTR lpClassName = argvaluedesc(_T("/class"), nullptr, _T("<class>"), nullptr);
-    LPCTSTR lpWindowName = argvaluedesc(_T("/title"), nullptr, _T("<title>"), nullptr);
+    LPCTSTR lpClassName = argvalue(_T("/class"), nullptr, _T("<class>"), nullptr);
+    LPCTSTR lpWindowName = argvalue(_T("/title"), nullptr, _T("<title>"), nullptr);
 	if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage(lpClassName == nullptr && lpWindowName == nullptr))

@@ -21,13 +21,13 @@ int _tmain(int argc, const TCHAR* argv[])
 {
     arginit(argc, argv);
     bool color = _isatty(_fileno(stdout));
-    if (argswitch(_T("/color")))
+    if (argswitch(_T("/color"), _T("Use color")))
         color = true;
-    if (argswitch(_T("/nocolor")))
+    if (argswitch(_T("/nocolor"), _T("Do not use color")))
         color = false;
-    bool squeeze = !argswitchdesc(_T("/nosqueeze"), _T("Do not skip over like lines"));
+    bool squeeze = !argswitch(_T("/nosqueeze"), _T("Do not skip over like lines"));
     argoptional();
-    const TCHAR* filename = argnumdesc(1, nullptr, _T("filename"), _isatty(_fileno(stdin)) ? nullptr : _T("-"));
+    const TCHAR* filename = argnum(1, nullptr, _T("filename"), _isatty(_fileno(stdin)) ? nullptr : _T("-"));
 	if (!argcleanup())
         return EXIT_FAILURE;
 
