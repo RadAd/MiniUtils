@@ -12,7 +12,7 @@ typedef struct TagArgArgDescription
     const TCHAR*  value;
     const TCHAR*  desc;
 } ArgArgDescription;
-ArgArgDescription g_argargdescription[10];
+ArgArgDescription g_argargdescription[20];
 int g_argargdescriptioncount = 0;
 typedef struct TagArgArgNumDescription
 {

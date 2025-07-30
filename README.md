@@ -103,6 +103,9 @@ Output the clipboard contents.
 ## [RadFType](RadFType.cpp)
 Replacement for ftype - assigning file type commands. Also support for current user settings.
 
+## [RadMsgBox](RadMsgBox.cpp)
+Call [MessageBox](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messageboxa) from the command line.
+
 ## [RadRunAs](RadRunAs.cpp)
 Like RunAs except it takes the password from the commandline. Also supports elevation. And Errors are reported in a GUI MessageBox.
 
