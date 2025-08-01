@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <strsafe.h>
 #include <string>
 #include "arg.inl"
 
@@ -9,7 +10,7 @@ void ErrorMessage(_In_ LPCWSTR lpFormat, ...)
     WCHAR buf[1024];
     va_list vl;
     va_start(vl, lpFormat);
-    wvsprintf(buf, lpFormat, vl);
+    StringCchVPrintf(buf, ARRAYSIZE(buf), lpFormat, vl);
     va_end(vl);
     MessageBox(NULL, buf, PROGRAM, MB_OK | MB_ICONERROR);
 }
