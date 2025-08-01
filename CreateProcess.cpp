@@ -28,7 +28,10 @@ std::tstring Format(_In_z_ _Printf_format_string_ TCHAR const* const format, ...
     int const _Result1 = _vsctprintf_l(format, NULL, args1);
     va_end(args1);
     buffer.resize(_Result1);
-    int const _Result2 = _vstprintf_s_l(buffer.data(), buffer.length() + 1, format, NULL, args2);
+#ifdef DEBUG
+    int const _Result2 =
+#endif
+     _vstprintf_s_l(buffer.data(), buffer.length() + 1, format, NULL, args2);
     assert(-1 != _Result2);
     va_end(args2);
     return buffer;

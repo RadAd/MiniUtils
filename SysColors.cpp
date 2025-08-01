@@ -216,9 +216,9 @@ void LoadRegSysColors(
 }
 
 void SaveRegSysColors(
-    _In_ int cElements,
-    _In_reads_(cElements) CONST INT* lpaElements,
-    _In_reads_(cElements) CONST COLORREF* lpaRgbValues)
+    _In_ int /*cElements*/,
+    _In_reads_(cElements) CONST INT* /*lpaElements*/,
+    _In_reads_(cElements) CONST COLORREF* /*lpaRgbValues*/)
 {
     _ftprintf(stderr, _T("TODO SaveRegSysColors\n"));
 }
