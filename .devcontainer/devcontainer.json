@@ -1,0 +1,16 @@
+{
+  "image": "mcr.microsoft.com/vscode/devcontainers/cpp:latest", // Example base image
+  "features": {
+    "ghcr.io/devcontainers/features/cpp:1": {
+      "version": "latest",
+      "compiler": "msvc" // Specify MSVC as the compiler
+    }
+  },
+  "extensions": [
+    "ms-vscode.cpptools",
+    "ms-vscode.cmake-tools"
+  ],
+  "settings": {
+    "terminal.integrated.shell.windows": "cmd.exe" // If you need a Windows-like terminal
+  }
+}
