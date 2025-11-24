@@ -214,6 +214,12 @@ const TCHAR* argvalue(const TCHAR* argf, const TCHAR* def, const TCHAR* descvalu
     return def;
 }
 
+int argvalueint(const TCHAR* argf, int def, const TCHAR* descvalue, const TCHAR* desc)
+{
+    const TCHAR* ret = argvalue(argf, NULL, descvalue, desc);
+    return ret ? _ttoi(ret) : def;
+}
+
 const TCHAR* argnum(int i, const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
 {
     ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount++];
@@ -234,6 +240,7 @@ const TCHAR* argnum(int i, const TCHAR* def, const TCHAR* descvalue, const TCHAR
             }
         }
     }
+    // if g_argargnumoptional > g_argargnumdescriptioncount then def is useless
     if (i < 0)
 #ifdef _WINDOWS
         MessageBox(NULL, _T("Error argument number\n"), argapp(), MB_OK | MB_ICONERROR);
@@ -246,4 +253,27 @@ const TCHAR* argnum(int i, const TCHAR* def, const TCHAR* descvalue, const TCHAR
 void argoptional()
 {
     g_argargnumoptional = g_argargnumdescriptioncount;
+}
+
+const TCHAR* argnext(const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
+{
+    if (def != NULL)
+        argoptional();
+
+    ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount++];
+    argargnumdescription->arg = descvalue;
+    argargnumdescription->desc = desc;
+    argargnumdescription->used = false;
+    for (int argi = 1; argi < g_argc; ++argi)
+    {
+        const TCHAR* arg = g_argv[argi];
+        if (arg[0] != '/' && !g_argb[argi])
+        {
+            g_argb[argi] = true;
+            argargnumdescription->used = true;
+            return arg;
+        }
+    }
+    // if g_argargnumoptional > g_argargnumdescriptioncount then def is useless
+    return def;
 }

@@ -26,8 +26,8 @@ int _tmain(int argc, const TCHAR* argv[])
     if (argswitch(_T("/nocolor"), _T("Do not use color")))
         color = false;
     bool squeeze = !argswitch(_T("/nosqueeze"), _T("Do not skip over like lines"));
-    argoptional();
-    const TCHAR* filename = argnum(1, nullptr, _T("filename"), _isatty(_fileno(stdin)) ? nullptr : _T("-"));
+    const bool istty = _isatty(_fileno(stdin));
+    const TCHAR* filename = argnext(!istty ? _T("-") : nullptr, _T("filename"), _T("input file (use '-' for stdin)"));
 	if (!argcleanup())
         return EXIT_FAILURE;
 
