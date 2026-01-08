@@ -103,16 +103,15 @@ int wmain(const int argc, const wchar_t* argv[])
 
     arginit(argc, argv, L"Show and select clipboard history");
 
-    argoptional();
-    const TCHAR* cmd = argnum(1, nullptr, L"command", L"Command option: list, view or select");
-    const TCHAR* item = argnum(2, nullptr, L"clip_id", L"Clip item target");
+    const TCHAR* cmd = argnext(L"list", L"command", L"Command option: list, view or select");
+    const TCHAR* item = argnext(nullptr, L"clip_id", L"Clip item target");
 
     if (!argcleanup())
         return EXIT_FAILURE;
     if (argusage())
         return EXIT_SUCCESS;
 
-    if (cmd == nullptr || _wcsicmp(cmd, L"list") == 0)
+    if (_wcsicmp(cmd, L"list") == 0)
         DumpClipboardHistoryAsync().get();
     else if (item == nullptr)
     {

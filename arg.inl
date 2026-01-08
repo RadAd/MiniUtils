@@ -257,7 +257,7 @@ void argoptional()
 
 const TCHAR* argnext(const TCHAR* def, const TCHAR* descvalue, const TCHAR* desc)
 {
-    if (def != NULL)
+    if (def != NULL && g_argargnumoptional == 65536)
         argoptional();
 
     ArgArgNumDescription* argargnumdescription = &g_argargnumdescription[g_argargnumdescriptioncount++];
