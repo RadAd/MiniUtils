@@ -49,7 +49,11 @@ int _tmain(const int argc, const TCHAR* const argv[])
     if (bHelp)
     {
         _tprintf(TEXT("%s <options> [command] <arg1> <arg2> <arg...>\n"), argv[0]);
-        // TODO List options
+        _tprintf(TEXT("\n"));
+        _tprintf(TEXT("options:\n"));
+        _tprintf(TEXT("  /Wait       - wait for process toe exit, return error code\n"));
+        _tprintf(TEXT("  /Pid [file] - output process id to a file\n"));
+        _tprintf(TEXT("  /Debug      - display some debug information\n"));
         return EXIT_SUCCESS;
     }
     else if (arg_command >= argc)
@@ -81,7 +85,7 @@ int _tmain(const int argc, const TCHAR* const argv[])
         return EXIT_FAILURE;
     }
 
-    if (bDebug) _tprintf(_T("Process id: %d\n"), GetProcessId(piProcessInfo.hProcess));
+    if (bDebug) _tprintf(_T("Process id: %u\n"), piProcessInfo.dwProcessId);
     if (pidfile)
     {
         FILE* f = nullptr;
@@ -90,7 +94,7 @@ int _tmain(const int argc, const TCHAR* const argv[])
             _ftprintf(stderr, TEXT("ERROR: Could open file '%s' (%d)\n"), pidfile, e);
         else
         {
-            _ftprintf(f, _T("%d\n"), GetProcessId(piProcessInfo.hProcess));
+            _ftprintf(f, _T("%u\n"), piProcessInfo.dwProcessId);
             fclose(f);
         }
     }
