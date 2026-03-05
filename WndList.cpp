@@ -9,6 +9,7 @@
 #include <vector>
 #include <inttypes.h>
 
+#include "arg.inl"
 #include "columns.inl"
 
 template <class T>
@@ -53,7 +54,6 @@ const Column<HWND> cols[] = {
 
 struct PrintWindowOptions
 {
-    std::wstring columns;
     std::vector<const Column<HWND>*> printcols;
     TCHAR sep;
 };
@@ -161,55 +161,110 @@ const TCHAR* getarg(int argc, const TCHAR* const argv[], const TCHAR* flag, cons
     return def;
 }
 
+void PrintUsage()
+{
+    _tprintf(_T("\nwhere command can be:\n"));
+    _tprintf(_T("  list   [parent]      - list all child windows\n"));
+    _tprintf(_T("  tree   [parent]      - show a tree of all child windows\n"));
+    _tprintf(_T("  print  <window>      - show a window\n"));
+    _tprintf(_T("  parent <window>      - walk parent list\n"));
+
+    _tprintf(_T("\nwhere window/parent can be:\n"));
+    _tprintf(_T("  {cursor}          - window under cursor\n"));
+    _tprintf(_T("  {cursor.parent}   - parent of window under cursor\n"));
+    _tprintf(_T("  {cursor.toplevel} - toplevel of window under cursor\n"));
+    _tprintf(_T("  {console}         - console window\n"));
+    _tprintf(_T("  {foreground}      - foreground window\n"));
+
+    _tprintf(_T("\nwhere columns can be:\n"));
+    ColPrintDescription(cols);
+}
+
 int _tmain(int argc, const TCHAR* const argv[])
 {
-    PrintWindowOptions print = {};
-    print.columns = _T("hpsxct");
-    //print.columns = _T("hpCt");
-    //print.columns = _T("hmCt");
-    print.sep = _T(' ');
-    //print.sep = _T(',');
-    int argnum = 1;
-    const TCHAR* cmd = argc >= argnum ? argv[argnum++] : nullptr;
-    const TCHAR* wnd = argc >= argnum ? argv[argnum++] : nullptr;
-    const TCHAR* columns = getarg(argc, argv, _T("/Columns"));
-    if (columns)
-        print.columns = columns;
-    print.printcols = ColParseFormat(print.columns, cols);;
+    arginit(argc, argv);
+
+    const TCHAR* cmd = argnext(nullptr, _T("command"), _T("Command option"));
 
     if (cmd == nullptr)
     {
-        _tprintf(_T("WndList <command> [options] [/Columns columns]\n"));
+        argcleanup();
+        _tprintf(_T("\n"));
 
-        _tprintf(_T("\nwhere command can be:\n"));
-        _tprintf(_T("list   [parent]      - list all child windows\n"));
-        _tprintf(_T("tree   [parent]      - show a tree of all child windows\n"));
-        _tprintf(_T("print  [window]      - show a window\n"));
-        _tprintf(_T("parent [window]      - walk parent list\n"));
-
-        _tprintf(_T("\nwhere window/parent can be:\n"));
-        _tprintf(_T("\t{cursor}     - window under cursor\n"));
-        _tprintf(_T("\t{cursor.parent}   - \n"));
-        _tprintf(_T("\t{cursor.toplevel} - \n"));
-        _tprintf(_T("\t{console}    - console window\n"));
-        _tprintf(_T("\t{foreground} - foreground window\n"));
-
-        _tprintf(_T("\nwhere columns can be:\n"));
-        ColPrintDescription(cols);
+        if (argusage(true))
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
     }
     else if (_tcsicmp(cmd, _T("list")) == 0)
+    {
+        argoptional();
+        const TCHAR* wnd = argnext(nullptr, _T("window"), _T("Parent window"));
+
+        PrintWindowOptions print = {};
+        print.printcols = ColParseFormat(argvalue(_T("/Columns"), _T("hpsxct"), _T("columns"), _T("Select columns")), cols);
+
+        if (!argcleanup())
+            return EXIT_FAILURE;
+        if (argusage())
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
+
         ListWindows(print, GetWindow(wnd), FALSE);
+    }
     else if (_tcsicmp(cmd, _T("tree")) == 0)
+    {
+        argoptional();
+        const TCHAR* wnd = argnext(nullptr, _T("window"), _T("Parent window"));
+
+        PrintWindowOptions print = {};
+        print.printcols = ColParseFormat(argvalue(_T("/Columns"), _T("hpsxct"), _T("columns"), _T("Select columns")), cols);
+
+        if (!argcleanup())
+            return EXIT_FAILURE;
+        if (argusage())
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
+
         ListWindows(print, GetWindow(wnd), TRUE);
+    }
     else if (_tcsicmp(cmd, _T("print")) == 0)
     {
-        if (!columns)
-            print.columns = _T("hpPRctsxrm");
-        HWND hWnd = GetWindow(wnd);
-        PrintWindowDetails(hWnd, print);
+        const TCHAR* wnd = argnext(nullptr, _T("window"), _T("Window"));
+
+        PrintWindowOptions print = {};
+        print.printcols = ColParseFormat(argvalue(_T("/Columns"), _T("hpPRctsxrm"), _T("columns"), _T("Select columns")), cols);
+
+        if (!argcleanup())
+            return EXIT_FAILURE;
+        if (argusage())
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
+
+        PrintWindowDetails(GetWindow(wnd), print);
     }
     else if (_tcsicmp(cmd, _T("parent")) == 0)
     {
+        const TCHAR* wnd = argnext(nullptr, _T("window"), _T("Window"));
+
+        PrintWindowOptions print = {};
+        print.printcols = ColParseFormat(argvalue(_T("/Columns"), _T("hpPRctsxrm"), _T("columns"), _T("Select columns")), cols);
+
+        if (!argcleanup())
+            return EXIT_FAILURE;
+        if (argusage())
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
+
         HWND hWnd = GetWindow(wnd);
         ColPrintHeader(print.printcols);
         while ((hWnd = GetParent(hWnd)) != NULL)
@@ -218,7 +273,17 @@ int _tmain(int argc, const TCHAR* const argv[])
     // "show" ShowWindow();
     // "send" SendMessage();
     else
-        _tprintf(_T("Unknown command \"%s\"\n"), cmd);
+    {
+        _tprintf(_T(ARG_ERROR("Unknown command:") " \"%s\"\n"), cmd);
+        argcleanup();
+        _tprintf(_T("\n"));
+
+        if (argusage(true))
+        {
+            PrintUsage();
+            return EXIT_SUCCESS;
+        }
+    }
 
 	return EXIT_SUCCESS;
 }
