@@ -59,6 +59,10 @@ void PrintWindowHeadings(const PrintWindowOptions& print)
         case _T('C'):
             _tprintf(_T("%-5s"), _T("CLOAK"));
             break;
+
+        case _T('m'):
+            _tprintf(_T("%-10s"), _T("MONITOR"));
+            break;
         }
         first = false;
     }
@@ -130,6 +134,10 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
                 DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
                 _tprintf(_T("%5d"), dwCloak);
             }
+            break;
+
+        case _T('m'):
+            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)));
             break;
         }
         first = false;
@@ -208,6 +216,10 @@ void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("Cloak: %ds\n"), dwCloak);
             }
             break;
+
+        case _T('m'):
+            _tprintf(_T("Monitor: 0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)));
+            break;
         }
     }
 }
@@ -253,6 +265,7 @@ void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const s
 
 void ListWindows(const PrintWindowOptions& print, const HWND hParentWnd, const BOOL bRecurse)
 {
+    _tprintf(_T("Columns %s\n"), print.columns.c_str());
     PrintWindowHeadings(print);
 
     std::vector<HWND> windows;
@@ -294,24 +307,41 @@ HWND GetWindow(const TCHAR* s)
         return static_cast<HWND>(UlongToHandle(_tcstoul(s, nullptr, 0)));
 }
 
+const TCHAR* getarg(int argc, const TCHAR* const argv[], const TCHAR* flag, const TCHAR* def = nullptr)
+{
+    for (int argnum = 1; argnum < argc; ++argnum)
+    {
+        const TCHAR* const arg = argv[argnum];
+        if (_tcsicmp(arg, flag) == 0)
+            return argv[argnum + 1];
+    }
+    return def;
+}
+
 int _tmain(int argc, const TCHAR* const argv[])
 {
     PrintWindowOptions print = {};
     print.columns = _T("hpsxct");
     //print.columns = _T("hpCt");
+    //print.columns = _T("hmCt");
     print.sep = _T(' ');
     //print.sep = _T(',');
-    const TCHAR* cmd = argc >= 1 ? argv[1] : nullptr;
-    const TCHAR* wnd = argc >= 2 ? argv[2] : nullptr;
+    int argnum = 1;
+    const TCHAR* cmd = argc >= argnum ? argv[argnum++] : nullptr;
+    const TCHAR* wnd = argc >= argnum ? argv[argnum++] : nullptr;
+    const TCHAR* columns = getarg(argc, argv, _T("/Columns"));
+    if (columns)
+        print.columns = columns;
 
     if (cmd == nullptr)
     {
-        _tprintf(_T("WndList <command> [options]\n"));
+        _tprintf(_T("WndList <command> [options] [/Columns columns]\n"));
 
         _tprintf(_T("\nwhere command can be:\n"));
-        _tprintf(_T("list  [parent]      - list all child windows\n"));
-        _tprintf(_T("tree  [parent]      - show a tree of all child windows\n"));
-        _tprintf(_T("print [window]      - show a window\n"));
+        _tprintf(_T("list   [parent]      - list all child windows\n"));
+        _tprintf(_T("tree   [parent]      - show a tree of all child windows\n"));
+        _tprintf(_T("print  [window]      - show a window\n"));
+        _tprintf(_T("parent [window]      - walk parent list\n"));
 
         _tprintf(_T("\nwhere window/parent can be:\n"));
         _tprintf(_T("\t{cursor}     - window under cursor\n"));
@@ -319,6 +349,18 @@ int _tmain(int argc, const TCHAR* const argv[])
         _tprintf(_T("\t{cursor.toplevel} - \n"));
         _tprintf(_T("\t{console}    - console window\n"));
         _tprintf(_T("\t{foreground} - foreground window\n"));
+
+        _tprintf(_T("\nwhere columns can be:\n"));
+        _tprintf(_T("\th     - window handle\n"));
+        _tprintf(_T("\tP     - parent handle\n"));
+        _tprintf(_T("\tR     - root handle\n"));
+        _tprintf(_T("\tt     - window title\n"));
+        _tprintf(_T("\tc     - window class\n"));
+        _tprintf(_T("\ts     - window style\n"));
+        _tprintf(_T("\tx     - window ex. style\n"));
+        _tprintf(_T("\tp     - process id\n"));
+        _tprintf(_T("\tC     - window cloaked\n"));
+        _tprintf(_T("\tm     - monitor handle\n"));
     }
     else if (_tcsicmp(cmd, _T("list")) == 0)
         ListWindows(print, GetWindow(wnd), FALSE);
@@ -326,7 +368,8 @@ int _tmain(int argc, const TCHAR* const argv[])
         ListWindows(print, GetWindow(wnd), TRUE);
     else if (_tcsicmp(cmd, _T("print")) == 0)
     {
-        print.columns = _T("hpPRctsxr");
+        if (!columns)
+            print.columns = _T("hpPRctsxrm");
         HWND hWnd = GetWindow(wnd);
         //PrintWindowHeadings(print);
         //PrintWindow(hWnd, print);
