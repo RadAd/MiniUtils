@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <tchar.h>
+#include <dwmapi.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -54,6 +55,10 @@ void PrintWindowHeadings(const PrintWindowOptions& print)
         case _T('p'):
             _tprintf(_T("%-5s"), _T("PID"));
             break;
+
+        case _T('C'):
+            _tprintf(_T("%-5s"), _T("CLOAK"));
+            break;
         }
         first = false;
     }
@@ -72,15 +77,15 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
         case _T('h'):
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(hWnd));
             break;
-            
+
         case _T('P'):
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
             break;
-            
+
         case _T('R'):
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
             break;
-            
+
         case _T('t'):
             {
                 TCHAR Title[MAX_PATH] = _T("");
@@ -88,7 +93,7 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("%s"), Title);
             }
             break;
-            
+
         case _T('c'):
             {
                 TCHAR Class[MAX_PATH] = _T("");
@@ -96,26 +101,34 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("%-30s"), Class);
             }
             break;
-            
+
         case _T('s'):
             {
                 LONG Style = GetWindowLong(hWnd, GWL_STYLE);
                 _tprintf(_T("0x%08X"), Style);
             }
             break;
-            
+
         case _T('x'):
             {
                 LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
                 _tprintf(_T("0x%08X"), ExStyle);
             }
             break;
-            
+
         case _T('p'):
             {
                 DWORD dwProcessId = 0;
                 GetWindowThreadProcessId(hWnd, &dwProcessId);
                 _tprintf(_T("%5d"), dwProcessId);
+            }
+            break;
+
+        case _T('C'):
+            {
+                DWORD dwCloak = 0;
+                DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
+                _tprintf(_T("%5d"), dwCloak);
             }
             break;
         }
@@ -133,15 +146,15 @@ void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
         case _T('h'):
             _tprintf(_T("HWND: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(hWnd));
             break;
-            
+
         case _T('P'):
             _tprintf(_T("Parent: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
             break;
-            
+
         case _T('R'):
             _tprintf(_T("Root: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
             break;
-            
+
         case _T('t'):
             {
                 TCHAR Title[MAX_PATH] = _T("");
@@ -149,7 +162,7 @@ void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("Title: \"%s\"\n"), Title);
             }
             break;
-            
+
         case _T('c'):
             {
                 TCHAR Class[MAX_PATH] = _T("");
@@ -157,21 +170,21 @@ void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("Class: \"%s\"\n"), Class);
             }
             break;
-            
+
         case _T('s'):
             {
                 LONG Style = GetWindowLong(hWnd, GWL_STYLE);
                 _tprintf(_T("Style: 0x%08X\n"), Style);
             }
             break;
-            
+
         case _T('x'):
             {
                 LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
                 _tprintf(_T("ExStyle: 0x%08X\n"), ExStyle);
             }
             break;
-            
+
         case _T('p'):
             {
                 DWORD dwProcessId = 0;
@@ -179,12 +192,20 @@ void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
                 _tprintf(_T("PID: %d\n"), dwProcessId);
             }
             break;
-            
+
         case _T('r'):
             {
                 RECT rc = {};
                 GetWindowRect(hWnd, &rc);
                 _tprintf(_T("Rect: { %d, %d, %d, %d } (%d x %d)\n"), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top);
+            }
+            break;
+
+        case _T('C'):
+            {
+                DWORD dwCloak = 0;
+                DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
+                _tprintf(_T("Cloak: %ds\n"), dwCloak);
             }
             break;
         }
@@ -233,7 +254,7 @@ void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const s
 void ListWindows(const PrintWindowOptions& print, const HWND hParentWnd, const BOOL bRecurse)
 {
     PrintWindowHeadings(print);
-    
+
     std::vector<HWND> windows;
     if (hParentWnd == NULL)
         EnumWindows(GetWindowsEnumWindowsProc, (LPARAM) &windows);
@@ -277,6 +298,7 @@ int _tmain(int argc, const TCHAR* const argv[])
 {
     PrintWindowOptions print = {};
     print.columns = _T("hpsxct");
+    //print.columns = _T("hpCt");
     print.sep = _T(' ');
     //print.sep = _T(',');
     const TCHAR* cmd = argc >= 1 ? argv[1] : nullptr;
@@ -321,6 +343,6 @@ int _tmain(int argc, const TCHAR* const argv[])
     // "send" SendMessage();
     else
         _tprintf(_T("Unknown command \"%s\"\n"), cmd);
-    
+
 	return EXIT_SUCCESS;
 }

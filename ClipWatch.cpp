@@ -98,6 +98,7 @@ BOOL OpenClipboardRetry(HWND hWndNewOwner)
 
 LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    HWND hClipOwner;
     switch (uMsg)
     {
     case WM_CREATE:
@@ -109,8 +110,12 @@ LRESULT CALLBACK ClipWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
 
     case WM_CLIPBOARDUPDATE:
+        hClipOwner = GetClipboardOwner();
+        printf("hClipOwner: 0x%08x\n", (UINT) (INT_PTR) hClipOwner);
         if (OpenClipboardRetry(hWnd))
         {
+        hClipOwner = GetClipboardOwner();
+        printf("hClipOwner: 0x%08x\n", (UINT) (INT_PTR) hClipOwner);
             bool found = false;
             int index = 0;
             UINT format;
