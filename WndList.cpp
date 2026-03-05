@@ -9,218 +9,62 @@
 #include <vector>
 #include <inttypes.h>
 
+#include "columns.inl"
+
+template <class T>
+struct ColHexFormat
+{
+    T val;
+};
+
+template <class T>
+ColHexFormat<T> ColHex(const T& v) { return { v }; }
+
+void ColPrintField(const ColHexFormat<LONG> Val, const DWORD Width){ _tprintf(TEXT("0x%0*X "), Width - 2, Val.val); }
+
+#define PRINT(x) [](const HWND& hWnd, const DWORD Width) { ColPrintField(x, Width); }
+
+DWORD GetWindowProcessId(HWND hWnd)
+{
+    DWORD dwProcessId = 0;
+    GetWindowThreadProcessId(hWnd, &dwProcessId);
+    return dwProcessId;
+}
+
+DWORD GetWindowCloak(HWND hWnd)
+{
+    DWORD dwCloak = 0;
+    DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
+    return dwCloak;
+}
+
+const Column<HWND> cols[] = {
+    { _T('h'), _T("Handle"),    _T("Window Handle"),            10, PRINT(hWnd) },
+    { _T('P'), _T("Parent"),    _T("Parent Handle"),            10, PRINT(GetParent(hWnd)) },
+    { _T('R'), _T("Root"),      _T("Root Handle"),              10, PRINT(GetAncestor(hWnd, GA_ROOTOWNER)) },
+    { _T('t'), _T("Title"),     _T("Window Title"),              5, [](const HWND& hWnd, const DWORD /*Width*/) { TCHAR Text[MAX_PATH] = _T(""); GetWindowText(hWnd, Text, ARRAYSIZE(Text)); _tprintf(TEXT("%s "), Text); } },
+    { _T('c'), _T("Class"),     _T("Window Class"),             30, [](const HWND& hWnd, const DWORD Width) { TCHAR Text[MAX_PATH] = _T(""); GetClassName(hWnd, Text, ARRAYSIZE(Text)); ColPrintField(Text, Width); } },
+    { _T('s'), _T("Style"),     _T("Window Style"),             10, PRINT(ColHex(GetWindowLong(hWnd, GWL_STYLE))) },
+    { _T('x'), _T("Ex. Style"), _T("Window Extended Style"),    10, PRINT(ColHex(GetWindowLong(hWnd, GWL_EXSTYLE))) },
+    { _T('P'), _T("PID"),       _T("Process ID"),                5, PRINT(GetWindowProcessId(hWnd)) },
+    { _T('C'), _T("Cloak"),     _T("Window Cloaked"),            5, PRINT(GetWindowCloak(hWnd)) },
+    { _T('m'), _T("Monitor"),   _T("Monitor Handle"),           10, PRINT(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)) },
+};
+
 struct PrintWindowOptions
 {
     std::wstring columns;
+    std::vector<const Column<HWND>*> printcols;
     TCHAR sep;
 };
 
-void PrintWindowHeadings(const PrintWindowOptions& print)
-{
-    bool first = true;
-    for (auto c : print.columns)
-    {
-        if (!first)
-            _tprintf(_T("%c"), print.sep);
-        switch (c)
-        {
-        case _T('h'):
-            _tprintf(_T("%-10s"), _T("HANDLE"));
-            break;
-
-        case _T('P'):
-            _tprintf(_T("%-10s"), _T("PARENT"));
-            break;
-
-        case _T('R'):
-            _tprintf(_T("%-10s"), _T("ROOT"));
-            break;
-
-        case _T('t'):
-            _tprintf(_T("%s"), _T("TITLE"));
-            break;
-
-        case _T('c'):
-            _tprintf(_T("%-30s"), _T("CLASS"));
-            break;
-
-        case _T('s'):
-            _tprintf(_T("%-10s"), _T("STYLE"));
-            break;
-
-        case _T('x'):
-            _tprintf(_T("%-10s"), _T("EX. STYLE"));
-            break;
-
-        case _T('p'):
-            _tprintf(_T("%-5s"), _T("PID"));
-            break;
-
-        case _T('C'):
-            _tprintf(_T("%-5s"), _T("CLOAK"));
-            break;
-
-        case _T('m'):
-            _tprintf(_T("%-10s"), _T("MONITOR"));
-            break;
-        }
-        first = false;
-    }
-    _tprintf(_T("\n"));
-}
-
-void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
-{
-    bool first = true;
-    for (auto c : print.columns)
-    {
-        if (!first)
-            _tprintf(_T("%c"), print.sep);
-        switch (c)
-        {
-        case _T('h'):
-            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(hWnd));
-            break;
-
-        case _T('P'):
-            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
-            break;
-
-        case _T('R'):
-            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
-            break;
-
-        case _T('t'):
-            {
-                TCHAR Title[MAX_PATH] = _T("");
-                GetWindowText(hWnd, Title, ARRAYSIZE(Title));
-                _tprintf(_T("%s"), Title);
-            }
-            break;
-
-        case _T('c'):
-            {
-                TCHAR Class[MAX_PATH] = _T("");
-                GetClassName(hWnd, Class, ARRAYSIZE(Class));
-                _tprintf(_T("%-30s"), Class);
-            }
-            break;
-
-        case _T('s'):
-            {
-                LONG Style = GetWindowLong(hWnd, GWL_STYLE);
-                _tprintf(_T("0x%08X"), Style);
-            }
-            break;
-
-        case _T('x'):
-            {
-                LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-                _tprintf(_T("0x%08X"), ExStyle);
-            }
-            break;
-
-        case _T('p'):
-            {
-                DWORD dwProcessId = 0;
-                GetWindowThreadProcessId(hWnd, &dwProcessId);
-                _tprintf(_T("%5d"), dwProcessId);
-            }
-            break;
-
-        case _T('C'):
-            {
-                DWORD dwCloak = 0;
-                DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
-                _tprintf(_T("%5d"), dwCloak);
-            }
-            break;
-
-        case _T('m'):
-            _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)));
-            break;
-        }
-        first = false;
-    }
-    _tprintf(_T("\n"));
-}
-
 void PrintWindowDetails(HWND hWnd, const PrintWindowOptions& print)
 {
-    for (auto c : print.columns)
+    for (const Column<HWND>* col : print.printcols)
     {
-        switch (c)
-        {
-        case _T('h'):
-            _tprintf(_T("HWND: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(hWnd));
-            break;
-
-        case _T('P'):
-            _tprintf(_T("Parent: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetParent(hWnd)));
-            break;
-
-        case _T('R'):
-            _tprintf(_T("Root: 0x%08") _T(PRIXPTR) _T("\n"), reinterpret_cast<uintptr_t>(GetAncestor(hWnd, GA_ROOTOWNER)));
-            break;
-
-        case _T('t'):
-            {
-                TCHAR Title[MAX_PATH] = _T("");
-                GetWindowText(hWnd, Title, ARRAYSIZE(Title));
-                _tprintf(_T("Title: \"%s\"\n"), Title);
-            }
-            break;
-
-        case _T('c'):
-            {
-                TCHAR Class[MAX_PATH] = _T("");
-                GetClassName(hWnd, Class, ARRAYSIZE(Class));
-                _tprintf(_T("Class: \"%s\"\n"), Class);
-            }
-            break;
-
-        case _T('s'):
-            {
-                LONG Style = GetWindowLong(hWnd, GWL_STYLE);
-                _tprintf(_T("Style: 0x%08X\n"), Style);
-            }
-            break;
-
-        case _T('x'):
-            {
-                LONG ExStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
-                _tprintf(_T("ExStyle: 0x%08X\n"), ExStyle);
-            }
-            break;
-
-        case _T('p'):
-            {
-                DWORD dwProcessId = 0;
-                GetWindowThreadProcessId(hWnd, &dwProcessId);
-                _tprintf(_T("PID: %d\n"), dwProcessId);
-            }
-            break;
-
-        case _T('r'):
-            {
-                RECT rc = {};
-                GetWindowRect(hWnd, &rc);
-                _tprintf(_T("Rect: { %d, %d, %d, %d } (%d x %d)\n"), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top);
-            }
-            break;
-
-        case _T('C'):
-            {
-                DWORD dwCloak = 0;
-                DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
-                _tprintf(_T("Cloak: %ds\n"), dwCloak);
-            }
-            break;
-
-        case _T('m'):
-            _tprintf(_T("Monitor: 0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)));
-            break;
-        }
+        _tprintf(_T("%-*s: "), 10, col->Name);
+        col->Print(hWnd, col->Width);
+        _tprintf(_T("\n"));
     }
 }
 
@@ -251,7 +95,7 @@ void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const s
             _tprintf(prefix.c_str());
             _tprintf(hWnd == windows.back() ? _T("\xC0\xC4\xC4") : _T("\xC3\xC4\xC4"));
         }
-        PrintWindow(hWnd, print);
+        ColPrintRow(print.printcols, hWnd);
 
         if (bRecurse)
         {
@@ -265,8 +109,7 @@ void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const s
 
 void ListWindows(const PrintWindowOptions& print, const HWND hParentWnd, const BOOL bRecurse)
 {
-    _tprintf(_T("Columns %s\n"), print.columns.c_str());
-    PrintWindowHeadings(print);
+    ColPrintHeader(print.printcols);
 
     std::vector<HWND> windows;
     if (hParentWnd == NULL)
@@ -332,6 +175,7 @@ int _tmain(int argc, const TCHAR* const argv[])
     const TCHAR* columns = getarg(argc, argv, _T("/Columns"));
     if (columns)
         print.columns = columns;
+    print.printcols = ColParseFormat(print.columns, cols);;
 
     if (cmd == nullptr)
     {
@@ -351,16 +195,7 @@ int _tmain(int argc, const TCHAR* const argv[])
         _tprintf(_T("\t{foreground} - foreground window\n"));
 
         _tprintf(_T("\nwhere columns can be:\n"));
-        _tprintf(_T("\th     - window handle\n"));
-        _tprintf(_T("\tP     - parent handle\n"));
-        _tprintf(_T("\tR     - root handle\n"));
-        _tprintf(_T("\tt     - window title\n"));
-        _tprintf(_T("\tc     - window class\n"));
-        _tprintf(_T("\ts     - window style\n"));
-        _tprintf(_T("\tx     - window ex. style\n"));
-        _tprintf(_T("\tp     - process id\n"));
-        _tprintf(_T("\tC     - window cloaked\n"));
-        _tprintf(_T("\tm     - monitor handle\n"));
+        ColPrintDescription(cols);
     }
     else if (_tcsicmp(cmd, _T("list")) == 0)
         ListWindows(print, GetWindow(wnd), FALSE);
@@ -371,16 +206,14 @@ int _tmain(int argc, const TCHAR* const argv[])
         if (!columns)
             print.columns = _T("hpPRctsxrm");
         HWND hWnd = GetWindow(wnd);
-        //PrintWindowHeadings(print);
-        //PrintWindow(hWnd, print);
         PrintWindowDetails(hWnd, print);
     }
     else if (_tcsicmp(cmd, _T("parent")) == 0)
     {
         HWND hWnd = GetWindow(wnd);
-        PrintWindowHeadings(print);
+        ColPrintHeader(print.printcols);
         while ((hWnd = GetParent(hWnd)) != NULL)
-            PrintWindow(hWnd, print);
+            ColPrintRow(print.printcols, hWnd);
     }
     // "show" ShowWindow();
     // "send" SendMessage();
