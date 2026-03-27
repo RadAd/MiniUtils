@@ -63,6 +63,10 @@ void PrintWindowHeadings(const PrintWindowOptions& print)
         case _T('m'):
             _tprintf(_T("%-10s"), _T("MONITOR"));
             break;
+
+        case _T('r'):
+            _tprintf(_T("%-42s"), _T("RECTANGLE"));
+            break;
         }
         first = false;
     }
@@ -138,6 +142,14 @@ void PrintWindow(HWND hWnd, const PrintWindowOptions& print)
 
         case _T('m'):
             _tprintf(_T("0x%08") _T(PRIXPTR), reinterpret_cast<uintptr_t>(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)));
+            break;
+
+        case _T('r'):
+            {
+                RECT rc = {};
+                GetWindowRect(hWnd, &rc);
+                _tprintf(_T("(%4d, %4d) - (%4d, %4d) : (%d x %d)"), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top);
+            }
             break;
         }
         first = false;
@@ -361,6 +373,7 @@ int _tmain(int argc, const TCHAR* const argv[])
         _tprintf(_T("\tp     - process id\n"));
         _tprintf(_T("\tC     - window cloaked\n"));
         _tprintf(_T("\tm     - monitor handle\n"));
+        _tprintf(_T("\tr     - windows rectangle\n"));
     }
     else if (_tcsicmp(cmd, _T("list")) == 0)
         ListWindows(print, GetWindow(wnd), FALSE);
