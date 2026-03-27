@@ -68,7 +68,7 @@ void ColPrintHeader(const std::vector<const Column<T>*>& printcols)
     _tprintf(TEXT("\n"));
     for (const Column<T>* col : printcols)
     {
-        const LPCTSTR str = TEXT("==================================");
+        const LPCTSTR str = TEXT("====================================================================");
 #if 0
         fwrite(str, sizeof(TCHAR), col->Width, tstdout);    // TODO support wstdout
         _tprintf(TEXT(" "));

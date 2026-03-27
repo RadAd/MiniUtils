@@ -22,6 +22,7 @@ template <class T>
 ColHexFormat<T> ColHex(const T& v) { return { v }; }
 
 void ColPrintField(const ColHexFormat<LONG> Val, const DWORD Width){ _tprintf(TEXT("0x%0*X "), Width - 2, Val.val); }
+void ColPrintField(RECT rc, const DWORD /*Width*/){ _tprintf(_T("(%4d, %4d) - (%4d, %4d) : (%d x %d) "), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top); }
 
 #define PRINT(x) [](const HWND& hWnd, const DWORD Width) { ColPrintField(x, Width); }
 
@@ -39,6 +40,13 @@ DWORD GetWindowCloak(HWND hWnd)
     return dwCloak;
 }
 
+RECT GetWindowRect(HWND hWnd)
+{
+    RECT rc = {};
+    GetWindowRect(hWnd, &rc);
+    return rc;
+}
+
 const Column<HWND> cols[] = {
     { _T('h'), _T("Handle"),    _T("Window Handle"),            10, PRINT(hWnd) },
     { _T('P'), _T("Parent"),    _T("Parent Handle"),            10, PRINT(GetParent(hWnd)) },
@@ -50,6 +58,7 @@ const Column<HWND> cols[] = {
     { _T('P'), _T("PID"),       _T("Process ID"),                5, PRINT(GetWindowProcessId(hWnd)) },
     { _T('C'), _T("Cloak"),     _T("Window Cloaked"),            5, PRINT(GetWindowCloak(hWnd)) },
     { _T('m'), _T("Monitor"),   _T("Monitor Handle"),           10, PRINT(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)) },
+    { _T('r'), _T("Rectangle"), _T("Window Rectangle"),         43, PRINT(GetWindowRect(hWnd)) },
 };
 
 struct PrintWindowOptions
