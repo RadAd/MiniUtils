@@ -8,11 +8,22 @@
 #define tstring string
 #endif
 
+#define ELLIPSES TEXT("\xe2\x80\xa6")
+
 void ColPrintField(const DWORD Val, const DWORD Width) { _tprintf(TEXT("%*u "), Width, Val); }
 void ColPrintField(const LONG Val, const DWORD Width)  { _tprintf(TEXT("%*d "), Width, Val); }
 void ColPrintField(const VOID* Val, const DWORD Width) { _tprintf(TEXT("0x%*p "), Width - 2, Val); }
 void ColPrintField(const HANDLE Val, const DWORD Width){ _tprintf(TEXT("0x%0*X "), Width - 2, (UINT) (INT_PTR) Val); }
-void ColPrintField(LPCTSTR Val, const DWORD Width)     { _tprintf(TEXT("%-*s "), Width, Val); }
+//void ColPrintField(LPCTSTR Val, const DWORD Width)     { Width == 0 ? _tprintf(TEXT("%s "), Val) : _tprintf(TEXT("%-*.*s "), Width, Width, Val); }
+void ColPrintField(LPCTSTR Val, const DWORD Width)
+{
+    if (Width == 0)
+        _tprintf(TEXT("%s "), Val);
+    else if ((DWORD) lstrlen(Val) > Width)
+        _tprintf(TEXT("%-*.*s") ELLIPSES TEXT(" "), Width - 1, Width - 1, Val);
+    else
+        _tprintf(TEXT("%-*s "), Width, Val);
+}
 
 template <class T>
 struct Column

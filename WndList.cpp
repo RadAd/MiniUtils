@@ -12,6 +12,20 @@
 #include "arg.inl"
 #include "columns.inl"
 
+#ifdef _UNICODE
+#define _F(x)   x##W
+namespace std
+{
+    using tstring = wstring;
+}
+#else
+#define _F(x)   x##A
+namespace std
+{
+    using tstring = string;
+}
+#endif
+
 template <class T>
 struct ColHexFormat
 {
@@ -21,44 +35,66 @@ struct ColHexFormat
 template <class T>
 ColHexFormat<T> ColHex(const T& v) { return { v }; }
 
-void ColPrintField(const ColHexFormat<LONG> Val, const DWORD Width){ _tprintf(TEXT("0x%0*X "), Width - 2, Val.val); }
-void ColPrintField(RECT rc, const DWORD /*Width*/){ _tprintf(_T("(%4d, %4d) - (%4d, %4d) : (%d x %d) "), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top); }
+void ColPrintField(const ColHexFormat<LONG> Val, const DWORD Width) { _tprintf(TEXT("0x%0*X "), Width - 2, Val.val); }
+void ColPrintField(RECT rc, const DWORD /*Width*/) { _tprintf(_T("(%4d, %4d) - (%4d, %4d) : (%d x %d) "), rc.left, rc.top, rc.right, rc.bottom, rc.right - rc.left, rc.bottom - rc.top); }
+void ColPrintField(const std::tstring& s, const DWORD Width) { ColPrintField(s.c_str(), Width); }
 
 #define PRINT(x) [](const HWND& hWnd, const DWORD Width) { ColPrintField(x, Width); }
 
-DWORD GetWindowProcessId(HWND hWnd)
+template <typename... Args, typename F>
+// std::string RadGetStringA(BOOL (*f)(Args..., LPSTR ps, int len), Args... args)
+std::string RadGetStringA(F f, Args... args)
 {
-    DWORD dwProcessId = 0;
-    GetWindowThreadProcessId(hWnd, &dwProcessId);
-    return dwProcessId;
+    std::string s;
+    auto len = f(args..., nullptr, 0);
+    s.resize(len);
+    f(args..., s.data(), static_cast<decltype(len)>(s.length()));
+    return s;
 }
 
-DWORD GetWindowCloak(HWND hWnd)
+template <typename... Args, typename F>
+// std::string RadGetStringA(BOOL (*f)(Args..., LPWSTR ps, int len), Args... args)
+std::wstring RadGetStringW(F f, Args... args)
 {
-    DWORD dwCloak = 0;
-    DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, &dwCloak, sizeof(dwCloak));
-    return dwCloak;
+    std::wstring s;
+    s.resize(1024);
+    decltype(f(args..., nullptr, 0)) len = f(args..., s.data(), static_cast<decltype(len)>(s.length() + 1));
+    s.resize(len);
+    return s;
 }
 
-RECT GetWindowRect(HWND hWnd)
+#define RadGetString _F(RadGetString)
+
+template <typename R, typename... Args, typename F>
+R RadGet(F f, Args... args)
 {
-    RECT rc = {};
-    GetWindowRect(hWnd, &rc);
-    return rc;
+    R r = {};
+    if (!f(args..., &r))
+        (void)0; // TODO throw
+    return r;
+}
+
+template <typename R, typename... Args, typename F>
+R RadGetWithSizeof(F f, Args... args)
+{
+    R r = {};
+    if (!f(args..., &r, sizeof(r)))
+        (void)0; // TODO throw
+    return r;
 }
 
 const Column<HWND> cols[] = {
     { _T('h'), _T("Handle"),    _T("Window Handle"),            10, PRINT(hWnd) },
     { _T('P'), _T("Parent"),    _T("Parent Handle"),            10, PRINT(GetParent(hWnd)) },
     { _T('R'), _T("Root"),      _T("Root Handle"),              10, PRINT(GetAncestor(hWnd, GA_ROOTOWNER)) },
-    { _T('t'), _T("Title"),     _T("Window Title"),              5, [](const HWND& hWnd, const DWORD /*Width*/) { TCHAR Text[MAX_PATH] = _T(""); GetWindowText(hWnd, Text, ARRAYSIZE(Text)); _tprintf(TEXT("%s "), Text); } },
-    { _T('c'), _T("Class"),     _T("Window Class"),             30, [](const HWND& hWnd, const DWORD Width) { TCHAR Text[MAX_PATH] = _T(""); GetClassName(hWnd, Text, ARRAYSIZE(Text)); ColPrintField(Text, Width); } },
+    { _T('t'), _T("Title"),     _T("Window Title"),              5, [](const HWND& hWnd, const DWORD /*Width*/) { ColPrintField(RadGetString(GetWindowText, hWnd), 0); } },
+    { _T('c'), _T("Class"),     _T("Window Class"),             30, PRINT(RadGetString(GetClassName, hWnd)) },
     { _T('s'), _T("Style"),     _T("Window Style"),             10, PRINT(ColHex(GetWindowLong(hWnd, GWL_STYLE))) },
     { _T('x'), _T("Ex. Style"), _T("Window Extended Style"),    10, PRINT(ColHex(GetWindowLong(hWnd, GWL_EXSTYLE))) },
-    { _T('P'), _T("PID"),       _T("Process ID"),                5, PRINT(GetWindowProcessId(hWnd)) },
-    { _T('C'), _T("Cloak"),     _T("Window Cloaked"),            5, PRINT(GetWindowCloak(hWnd)) },
+    { _T('p'), _T("PID"),       _T("Process ID"),                5, PRINT(RadGet<DWORD>(GetWindowThreadProcessId, hWnd)) },
+    { _T('C'), _T("Cloak"),     _T("Window Cloaked"),            5, PRINT(RadGetWithSizeof<DWORD>(DwmGetWindowAttribute, hWnd, DWMWA_CLOAKED)) },
     { _T('m'), _T("Monitor"),   _T("Monitor Handle"),           10, PRINT(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)) },
-    { _T('r'), _T("Rectangle"), _T("Window Rectangle"),         43, PRINT(GetWindowRect(hWnd)) },
+    { _T('r'), _T("Rectangle"), _T("Window Rectangle"),         43, PRINT(RadGet<RECT>(GetWindowRect, hWnd)) },
 };
 
 struct PrintWindowOptions
@@ -95,7 +131,7 @@ void Filter(std::vector<HWND>& windows, HWND hParentWnd)
     }), windows.end());
 }
 
-void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const std::wstring& prefix, const PrintWindowOptions& print)
+void PrintWindows(const std::vector<HWND>& windows, const BOOL bRecurse, const std::tstring& prefix, const PrintWindowOptions& print)
 {
     for (HWND hWnd : windows)
     {

@@ -10,6 +10,16 @@
 
 typedef DWORDLONG QWORD;
 
+#define CHECK_LSTATUS(x, r) \
+{ \
+    const LONG lErrorCode = (x); \
+    if (lErrorCode != ERROR_SUCCESS) \
+    { \
+        _tprintf(TEXT("Error in ") TEXT(#x) TEXT(" (%d).\n"), lErrorCode); \
+        r; \
+    } \
+}
+
 LPCTSTR treenode_u16[] = {
     _T("\u2514\u2500"),
     _T("\u251C\u2500"),
@@ -39,7 +49,7 @@ LPTSTR GetTypeName(DWORD dwType)
     }
 }
 
-void ExportKey(HKEY hKey, const std::wstring& prefix)
+void RegKeyTree(HKEY hKey, const std::wstring& prefix)
 {
     TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name
     DWORD    cchClassName = MAX_PATH;  // size of class string
@@ -53,7 +63,7 @@ void ExportKey(HKEY hKey, const std::wstring& prefix)
     FILETIME ftLastWriteTime;      // last write time
 
     // Get the class name and the value count.
-    /*DWORD retCode =*/ RegQueryInfoKey(
+    CHECK_LSTATUS(RegQueryInfoKey(
         hKey,                    // key handle
         achClass,                // buffer for class name
         &cchClassName,           // size of class string
@@ -65,7 +75,8 @@ void ExportKey(HKEY hKey, const std::wstring& prefix)
         &cchMaxValue,            // longest value name
         &cbMaxValueData,         // longest value data
         &cbSecurityDescriptor,   // security descriptor
-        &ftLastWriteTime);       // last write time
+        &ftLastWriteTime),       // last write time
+        return);
 
     if (cSubKeys)
     {
@@ -83,22 +94,22 @@ void ExportKey(HKEY hKey, const std::wstring& prefix)
                 NULL,
                 NULL,
                 &ftLastWriteTime);
-                
+
             const bool last = cValues == 0 && (i + 1) == cSubKeys;
             _tprintf(TEXT("\x1b[32m%s%s\x1b[34m[%s]\x1b[0m"), prefix.c_str(), last ? treenode[0] : treenode[1], achKey.data());
             if (retCode == ERROR_SUCCESS)
             {
                 _tprintf(TEXT("\n"));
-                
+
                 HKEY hChildKey = NULL;
 
-                /*DWORD retCode =*/ RegOpenKeyEx(hKey,
+                CHECK_LSTATUS(RegOpenKeyEx(hKey,
                     achKey.data(),
                     0,
                     KEY_READ,
-                    &hChildKey);
-                
-                ExportKey(hChildKey, prefix + (last ? treenode[2] : treenode[3]));
+                    &hChildKey), continue);
+
+                RegKeyTree(hChildKey, prefix + (last ? treenode[2] : treenode[3]));
             }
             else
             {
@@ -121,62 +132,63 @@ void ExportKey(HKEY hKey, const std::wstring& prefix)
             DWORD cbData = cbMaxValueData + 1;
             std::vector<BYTE> bData(cbData);
 
-            DWORD retCode = RegEnumValue(hKey, i,
+            CHECK_LSTATUS(RegEnumValue(hKey, i,
                 achValue.data(),
                 &cchValue,
                 NULL,
                 &dwType,
                 bData.data(),
-                &cbData);
+                &cbData), continue);
 
             if (_tcscmp(achValue.data(), _T("")) == 0)
                 _tcscpy_s(achValue.data(), cchValue - 1, TEXT("@"));
-                
+
             const bool last = (i + 1) == cValues;
             _tprintf(TEXT("\x1b[32m%s%s\x1b[33m\"%s\"\x1b[36m "), prefix.c_str(), last ? treenode[0] : treenode[1], achValue.data());
-            if (retCode == ERROR_SUCCESS)
+
+            _tprintf(TEXT("(%s)\x1b[0m: "), GetTypeName(dwType));
+            switch (dwType)
             {
-                _tprintf(TEXT("(%s)\x1b[0m: "), GetTypeName(dwType));
-                switch (dwType)
+            case REG_BINARY:
+                _tprintf(TEXT("(%d)"), cbData);
+                for (DWORD b = 0; b < cbData; ++b)
                 {
-                case REG_BINARY:
-                    _tprintf(TEXT("(%d)"), cbData);
-                    for (DWORD b = 0; b < cbData; ++b)
-                    {
-                        _tprintf(TEXT(" %02X"), bData[b]);
-                    }
-                    break;
-                case REG_DWORD:         _tprintf(TEXT("%u (0x%08X)"), *reinterpret_cast<DWORD*>(bData.data()), *reinterpret_cast<DWORD*>(bData.data())); break;
-                case REG_EXPAND_SZ:     _tprintf(TEXT("\"%.*s\""), static_cast<int>(cbData / sizeof(TCHAR)), reinterpret_cast<TCHAR*>(bData.data())); break;
-                case REG_MULTI_SZ:
-                    for (DWORD b = 0; b < (cbData - sizeof(TCHAR)); b += static_cast<DWORD>((_tcslen(reinterpret_cast<TCHAR*>(bData.data() + b)) + 1) * sizeof(TCHAR)))
-                    {
-                        if (b != 0)
-                            _tprintf(TEXT(", "));
-                        _tprintf(TEXT("\"%s\""), reinterpret_cast<TCHAR*>(bData.data() + b));
-                    }
-                    break;
-                case REG_QWORD:         _tprintf(TEXT("%I64u (0x%08I64X)"), *reinterpret_cast<QWORD*>(bData.data()), *reinterpret_cast<QWORD*>(bData.data())); break;
-                case REG_SZ:            _tprintf(TEXT("\"%.*s\""), static_cast<int>(cbData / sizeof(TCHAR)), reinterpret_cast<TCHAR*>(bData.data())); break;
+                    _tprintf(TEXT(" %02X"), bData[b]);
                 }
-                _tprintf(TEXT("\n"));
+                break;
+            case REG_DWORD:         _tprintf(TEXT("%u (0x%08X)"), *reinterpret_cast<DWORD*>(bData.data()), *reinterpret_cast<DWORD*>(bData.data())); break;
+            case REG_EXPAND_SZ:     _tprintf(TEXT("\"%.*s\""), static_cast<int>(cbData / sizeof(TCHAR)), reinterpret_cast<TCHAR*>(bData.data())); break;
+            case REG_MULTI_SZ:
+                for (DWORD b = 0; b < (cbData - sizeof(TCHAR)); b += static_cast<DWORD>((_tcslen(reinterpret_cast<TCHAR*>(bData.data() + b)) + 1) * sizeof(TCHAR)))
+                {
+                    if (b != 0)
+                        _tprintf(TEXT(", "));
+                    _tprintf(TEXT("\"%s\""), reinterpret_cast<TCHAR*>(bData.data() + b));
+                }
+                break;
+            case REG_QWORD:         _tprintf(TEXT("%I64u (0x%08I64X)"), *reinterpret_cast<QWORD*>(bData.data()), *reinterpret_cast<QWORD*>(bData.data())); break;
+            case REG_SZ:            _tprintf(TEXT("\"%.*s\""), static_cast<int>(cbData / sizeof(TCHAR)), reinterpret_cast<TCHAR*>(bData.data())); break;
             }
-            else
-            {
-                _tprintf(TEXT("(Error: %d)\n"), retCode);
-            }
+            _tprintf(TEXT("\n"));
         }
     }
 }
 
-HKEY StringToKey(LPCTSTR strKey)
+HKEY GetRootKey( const TCHAR* s)
 {
-         if (wcscmp(strKey, _T("HKEY_CURRENT_USER")) == 0) return HKEY_CURRENT_USER;
-    else if (wcscmp(strKey, _T("HKCU")) == 0) return HKEY_CURRENT_USER;
-    else if (wcscmp(strKey, _T("HKEY_LOCAL_MACHINE")) == 0) return HKEY_LOCAL_MACHINE;
-    else if (wcscmp(strKey, _T("HKLM")) == 0) return HKEY_LOCAL_MACHINE;
-    else if (wcscmp(strKey, _T("HKEY_CLASSES_ROOT")) == 0) return HKEY_CLASSES_ROOT;
-    else if (wcscmp(strKey, _T("HKCR")) == 0) return HKEY_CLASSES_ROOT;
+    if (s == nullptr) return NULL;
+#define X(str, k) else if (_tcscmp(TEXT(str), s) == 0) return k
+    X("HKLM", HKEY_LOCAL_MACHINE);
+    X("HKU",  HKEY_USERS);
+    X("HKCU", HKEY_CURRENT_USER);
+    X("HKCR", HKEY_CLASSES_ROOT);
+    X("HCC",  HKEY_CURRENT_CONFIG);
+    X("HKEY_LOCAL_MACHINE",  HKEY_LOCAL_MACHINE);
+    X("HKEY_USERS",          HKEY_USERS);
+    X("HKEY_CURRENT_USER",   HKEY_CURRENT_USER);
+    X("HKEY_CLASSES_ROOT",   HKEY_CLASSES_ROOT);
+    X("HKEY_CURRENT_CONFIG", HKEY_CURRENT_CONFIG);
+#undef X
     else return NULL;
 }
 
@@ -194,33 +206,24 @@ int _tmain(int argc, LPTSTR argv[])
         _tprintf(TEXT("%s <key>\n"), argv[0]);
         return EXIT_SUCCESS;
     }
-    
+
     LPTSTR strKey = argv[1];
     const LPTSTR i = _tcschr(strKey, _T('\\'));
     if (i != nullptr)
         *i = _T('\0');
     LPCTSTR strSubKey = i != nullptr ? i + 1 : _T("");
-    
-    const HKEY hBaseKey = StringToKey(strKey);
+
+    const HKEY hBaseKey = GetRootKey(strKey);
     if (hBaseKey == NULL)
     {
         _ftprintf(stderr, TEXT("Unknown base key %s\n"), strKey);
         return EXIT_FAILURE;
     }
-    
+
     HKEY hKey = NULL;
-    DWORD retCode = RegOpenKeyEx(hBaseKey,
-        strSubKey,
-        0,
-        KEY_READ,
-        &hKey);
-    if (retCode != ERROR_SUCCESS)
-    {
-        _ftprintf(stderr, TEXT("Error opening key 0x%08X\n"), retCode);
-        return EXIT_FAILURE;
-    }
-    
-    ExportKey(hKey, _T(""));
-    
+    CHECK_LSTATUS(RegOpenKeyEx(hBaseKey, strSubKey, 0, KEY_READ, &hKey), return EXIT_FAILURE);
+
+    RegKeyTree(hKey, _T(""));
+
     return EXIT_SUCCESS;
 }
