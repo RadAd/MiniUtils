@@ -5,16 +5,16 @@
 /*
 // map the file to our address space
 // first, create a file mapping object
-hMap = CreateFileMapping( 
-  hFile, 
+hMap = CreateFileMapping(
+  hFile,
   NULL,           // security attrs
   PAGE_READONLY,  // protection flags
   0,              // max size - high DWORD
-  0,              // max size - low DWORD      
+  0,              // max size - low DWORD
   NULL );         // mapping name - not used
 
 // next, map the file to our address space
-void* mapAddr = MapViewOfFileEx( 
+void* mapAddr = MapViewOfFileEx(
   hMap,             // mapping object
   FILE_MAP_READ,  // desired access
   0,              // loc to map - hi DWORD
@@ -34,9 +34,9 @@ int main(int /*argc*/, const char* argv[])
         fprintf(stderr, "GetBinaryType Error: %d\n", GetLastError());
         return EXIT_FAILURE;
     }
-    
+
     // TODO Also see SHGetFileInfoA for whether it is a windows or console application
-    
+
     switch (Type)
     {
     case SCS_32BIT_BINARY:
@@ -57,7 +57,7 @@ int main(int /*argc*/, const char* argv[])
     case SCS_POSIX_BINARY:
         printf("A POSIX - based application\n");
         break;
-    case SCS_WOW_BINARY: 
+    case SCS_WOW_BINARY:
         printf("A 16-bit Windows-based application\n");
         break;
     default:
